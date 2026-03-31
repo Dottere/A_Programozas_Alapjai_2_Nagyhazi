@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -Wall -std=c++17 -Iheaders
+CXXFLAGS = -Wall -std=c++17 -Iinclude
 
 SRC = $(wildcard src/*.cpp)
 OBJ = $(patsubst src/%.cpp, build/%.o, $(SRC))
