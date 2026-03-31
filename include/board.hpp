@@ -15,8 +15,18 @@ class Board {
         Board();
         ~Board();
 
-        inline bool isOnBoard(int x, int y) const { return (x >= 0 && x <= 7 && y >= 0 && y <= 7); }
-        bool isWithinBounds(int x_start, int y_start, int x_end, int y_end) const;
+        inline bool isOnBoard(int x, int y) const { 
+            return (x >= 0 && x <= 7 && y >= 0 && y <= 7); 
+        }
+
+        inline Piece* getPiece(int x, int y) {
+            return board[x][y];
+        }
+
+        inline bool isWithinBounds(int x_start, int y_start, int x_end, int y_end) const {
+            return (isOnBoard(x_start, y_start) && isOnBoard(x_end, y_end));
+        }
+        
         bool isPathClear(int x_start, int y_start, int x_end, int y_end) const;
 
 };

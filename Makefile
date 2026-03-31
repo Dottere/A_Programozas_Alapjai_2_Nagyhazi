@@ -16,4 +16,4 @@ build/%.o: src/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	rm -f build $(TARGET)
+	rm -rf build $(TARGET)
