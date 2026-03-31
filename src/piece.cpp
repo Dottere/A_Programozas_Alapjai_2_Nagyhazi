@@ -1,5 +1,11 @@
-#include "include/piece.hpp"
+#include "piece.hpp"
 #include <cmath>
+
+// Piece
+
+Color Piece::getColor(void) const {
+    return PieceColor;
+}
 
 // Rook
 

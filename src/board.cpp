@@ -1,4 +1,4 @@
-#include "include/board.hpp"
+#include "board.hpp"
 #include <cmath>
 
 Board::Board() {
@@ -22,6 +22,19 @@ Board::~Board() {
 }
 
 bool Board::isPathClear(int x_start, int y_start, int x_end, int y_end) const {
-    int dx = std::abs(x_end - x_start);
-    int dy = std::abs(y_end - y_start);
+    int stepX = (x_end > x_start) ? 1 : ((x_end < x_start) ? -1 : 0);
+    int stepY = (y_end > y_start) ? 1 : ((y_end < y_start) ? -1 : 0);
+
+    int currX = x_start + stepX;
+    int currY = y_start + stepY;
+
+    while (currX != x_end || currY != y_end) {
+        if (board[currX][currY] != nullptr) {
+            return false;
+        }
+        currX += stepX;
+        currY += stepY;
+    }
+
+    return true;
 }

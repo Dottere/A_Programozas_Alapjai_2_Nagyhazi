@@ -16,7 +16,7 @@ class Piece {
 
     public:
         Piece(Color color) : PieceColor(color) {;}
-        virtual ~Piece();
+        virtual ~Piece() = default;
 
         virtual bool isValidMove(int x_start, int y_start, int x_end, int y_end, const Piece* TargetPiece) const = 0;
 
