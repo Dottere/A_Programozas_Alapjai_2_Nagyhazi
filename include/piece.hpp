@@ -5,31 +5,79 @@
 * Ez a fejlécfájl lesz felelős a bábu ősosztály és az abból származtatott összes többi bábu megvalósításával.
 */
 
+/**
+ * @brief Egy szimpla enum amely nevesíti a bábuk színeit.
+ */
 enum class Color {
     WHITE,
     BLACK
 };
 
+/**
+ * @brief A bábu alaposztály melyet kiterjeszt az összes többi bábu.
+ * 
+ * A bábuk tudják önmagukról, hogy hogyan léphetnek, milyen színűek, léptek-e már. Ezt kezeli ez az osztály.
+ */
 class Piece {
     Color PieceColor;
+    /// Jelzi, hogy a bábu lépett-e már. (Sáncoláshoz, paraszt dupla lépéséhez fontos)
     bool hasMoved = false;
 
     public:
         Piece(Color color) : PieceColor(color) {;}
         virtual ~Piece() = default;
 
+        /**
+         * @brief Megmondja, hogy az adott mezőre lépés lehetséges-e.
+         * 
+         * Ez a bábuk szíve, ez egy tisztán virtuális függvény amelyet minden bábunak kötelező felül írnia. 
+         * Bekér egy kezdő és végső koordinátát, meg azt, hogy milyen bábu áll a végső koordinátán. Ha a bábu saját
+         * szabályainak megfelel mindegyik paraméter, akkor igazat ad vissza, ellenben nem.
+         * 
+         * @param x_start A kezdő x koordináta
+         * @param y_start A kezdő y koordináta
+         * @param x_end A végső x koordináta
+         * @param y_end A végső y koordináta
+         * @param TargetPiece A végső mezőn álló bábura mutató, ha nem áll ott semmi akkor nullptr
+         * 
+         * @return True/Igaz ha a bábu szabályainak megfelelnek a paraméterek, ellenben False/Hamis
+        */
         virtual bool isValidMove(int x_start, int y_start, int x_end, int y_end, const Piece* TargetPiece) const = 0;
 
-        Color getColor(void) const;
+        /**
+         * @brief Visszaadja a bábu színét
+         * @return A bábu színe
+         */
+        inline Color getColor() const {
+            return PieceColor;
+        }
         
-        inline bool getHasMoved(void) const {return hasMoved;}
-        inline void setHasMoved(void)       {hasMoved = true;}
+        /**
+         * @brief Visszaadja, hogy a bábu lépett-e már.
+         */
+        inline bool getHasMoved() const {return hasMoved;}
+        /**
+         * @brief Igazra állítja a bábu azon változóját, amely számon tartja, hogy lépett-e már.
+         */
+        inline void setHasMoved()       {hasMoved = true;}
 };
 
 class Rook : public Piece {
     public:
         Rook(Color color) : Piece(color) {;}
-
+        /** 
+         * @brief A Bástya osztály lépésvalidáló metódusa
+         * 
+         * A bástya úgy léphet, ha csakis egyvonalban mozog, de ott bármennyit. Ezt úgy valósítja meg, hogy megnézi mely
+         * koordináták változtak. Ha csak az x, vagy csak az y koordináták változtak, akkor a lépés helyes.
+         * 
+         * @param x_start A kezdő x koordináta
+         * @param y_start A kezdő y koordináta
+         * @param x_end A végső x koordináta
+         * @param y_end A végső y koordináta
+         * @param TargetPiece A végső mezőn álló bábura mutató, ha nem áll ott semmi akkor nullptr
+         * @return True/Igaz ha a bábu szabályainak megfelelnek a paraméterek, ellenben False/Hamis
+        */ 
         bool isValidMove(int x_start, int y_start, int x_end, int y_end, const Piece* TargetPiece) const override;
 };
 

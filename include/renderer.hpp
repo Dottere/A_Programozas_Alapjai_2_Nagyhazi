@@ -10,19 +10,11 @@
 #include <iostream>
 
 class Renderer {
+    const Board& board;
+    
     public:
-        inline void display(const Board& board) {
-            for (int x = 0; x < 8; x++) {
-                for (int y = 0; y <= 8; y++) {
-                    if (x==7 && y == 8) break;
-                    if (y == 7) {
-                        std::cout << "#\n" << std::endl; 
-                        break;
-                    }
-                    std::cout << "#  ";
-                }
-            }
-        }
+        Renderer(const Board& board) : board(board) {}
+        void display();
 };
 
 #endif

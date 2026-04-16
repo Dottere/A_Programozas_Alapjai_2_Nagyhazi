@@ -1,12 +1,6 @@
 #include "piece.hpp"
 #include <cmath>
 
-// Piece
-
-Color Piece::getColor(void) const {
-    return PieceColor;
-}
-
 // Rook
 
 bool Rook::isValidMove(int x_start, int y_start, int x_end, int y_end, const Piece* TargetPiece) const {
