@@ -71,6 +71,8 @@ class Board {
          */
         bool isPathClear(int x_start, int y_start, int x_end, int y_end) const;
 
+        bool isCheck(Color c);
+        bool isCheckMate(Color c);
 };
 
 #endif

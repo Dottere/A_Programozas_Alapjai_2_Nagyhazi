@@ -3,13 +3,11 @@
 
 void Renderer::display() {
     for (int x = 0; x < 8; x++) {
-        for (int y = 0; y <= 8; y++) {
-            if (x==7 && y == 8) break;
-            if (y == 7) {
-                std::cout << "\u2654\n" << std::endl; 
-                break;
-            }
-            std::cout << "\u2654   ";
-        }
+    for (int y = 0; y < 8; y++) {
+        const Piece* p = board.getPiece(x, y);
+        if (p) std::cout << "P "; // Ide jöhetnek az Unicode karakterek
+        else std::cout << ". ";
     }
+    std::cout << std::endl;
+}
 }

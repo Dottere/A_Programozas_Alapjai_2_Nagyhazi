@@ -23,6 +23,9 @@ class Piece {
     /// Jelzi, hogy a bábu lépett-e már. (Sáncoláshoz, paraszt dupla lépéséhez fontos)
     bool hasMoved = false;
 
+    protected: 
+        std::string symbol;
+
     public:
         Piece(Color color) : PieceColor(color) {;}
         virtual ~Piece() = default;
@@ -49,7 +52,7 @@ class Piece {
          * @return A bábu színe
          */
         inline Color getColor() const {
-            return PieceColor;
+            return PieceColor;  
         }
         
         /**
@@ -60,11 +63,18 @@ class Piece {
          * @brief Igazra állítja a bábu azon változóját, amely számon tartja, hogy lépett-e már.
          */
         inline void setHasMoved()       {hasMoved = true;}
+
+        inline const std::string& getSymbol() const { 
+            return symbol; 
+        }    
 };
 
 class Rook : public Piece {
     public:
-        Rook(Color color) : Piece(color) {;}
+        Rook(Color color) : Piece(color) {
+            symbol = (color == Color::WHITE) ? "\u2656" : "\u265C"; 
+        }
+
         /** 
          * @brief A Bástya osztály lépésvalidáló metódusa
          * 
@@ -83,35 +93,45 @@ class Rook : public Piece {
 
 class Knight : public Piece {
     public:
-        Knight(Color color) : Piece(color) {;}
+        Knight(Color color) : Piece(color) {
+            symbol = (color == Color::WHITE) ? "\u2658" : "\u265E"; 
+        }
 
         bool isValidMove(int x_start, int y_start, int x_end, int y_end, const Piece* TargetPiece) const override;
 };
 
 class Bishop : public Piece {
     public:
-        Bishop(Color color) : Piece(color) {;}
+        Bishop(Color color) : Piece(color) {
+            symbol = (color == Color::WHITE) ? "\u2657" : "\u265D";
+        }
 
         bool isValidMove(int x_start, int y_start, int x_end, int y_end, const Piece* TargetPiece) const override;
 };
 
 class Queen : public Piece {
     public:
-        Queen(Color color) : Piece(color) {;}
+        Queen(Color color) : Piece(color) {
+            symbol = (color == Color::WHITE) ? "\u2655" : "\u265B";
+        }
 
         bool isValidMove(int x_start, int y_start, int x_end, int y_end, const Piece* TargetPiece) const override;
 };
 
 class King : public Piece {
     public:
-        King(Color color) : Piece(color) {;}
+        King(Color color) : Piece(color) {
+            symbol = (color == Color::WHITE) ? "\u2654" : "\u265A";
+        }
 
         bool isValidMove(int x_start, int y_start, int x_end, int y_end, const Piece* TargetPiece) const override;
 };
 
 class Pawn : public Piece {
     public:
-        Pawn(Color color) : Piece(color) {;}
+        Pawn(Color color) : Piece(color) {
+            symbol = (color == Color::WHITE) ? "\u2659" : "\u265F";
+        }
 
         bool isValidMove(int x_start, int y_start, int x_end, int y_end, const Piece* TargetPiece) const override;
 };
