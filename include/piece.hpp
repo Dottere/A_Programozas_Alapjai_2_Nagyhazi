@@ -37,10 +37,13 @@ class Piece {
 
     protected: 
         std::string symbol;
+        bool isKingFlag = false;
 
     public:
         Piece(Color color) : PieceColor(color) {;}
         virtual ~Piece() = default;
+
+        bool isKing() { return isKingFlag; }
 
         /**
          * @brief Megmondja, hogy az adott mezőre lépés lehetséges-e.
@@ -151,6 +154,7 @@ class King : public Piece {
     public:
         King(Color color) : Piece(color) {
             symbol = (color == Color::WHITE) ? "\u2654" : "\u265A";
+            isKingFlag = true;
         }
 
         bool isValidMove(Position startPos, Position endPos, const Piece* TargetPiece) const override;

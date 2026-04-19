@@ -56,3 +56,47 @@ bool Board::placePiece(Piece& piece, Position pos) {
     board[pos.x][pos.y] = &piece;
     return true;
 }
+
+Position Board::findKing(Color c) {
+    Position kingPos = Position(0,0);
+
+    for (int y = 7; y >= 0; y--) {
+        for (int x = 0; x < 8; x++) {
+            if (board[x][y]->getColor() == c)
+                if (board[x][y]->isKing())
+                    kingPos = Position(x,y);
+        }
+    }
+
+    return kingPos;
+}
+
+bool Board::isCheck(Color c) {
+    Position kingPos = findKing(c);
+    Piece* king = board[kingPos.x][kingPos.y];
+
+    for (int y = 7; y >= 0; y--) {
+        for (int x = 0; x < 8; x++) {
+            if (board[x][y]->isValidMove(Position(x, y), kingPos, king)) return true;
+        }
+    }
+    return false;
+}
+
+bool Board::isCheckMate(Color c) {
+    Position kingPos = findKing(c);
+    Piece* king = board[kingPos.x][kingPos.y];
+
+    bool isCheckMate = true;
+
+    if (!isCheck(c)) return false;
+
+    for (int y = kingPos.y+1; y >= kingPos.y-1; y--) {
+        for (int x = kingPos.x-1; x <= kingPos.x+1; x++) {
+            if (!isOnBoard(Position(x,y))) continue;
+
+            if (king->isValidMove(kingPos, Position(x,y), board[x][y])) isCheckMate = false; 
+        }
+    }
+    return isCheckMate;
+}

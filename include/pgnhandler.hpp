@@ -5,6 +5,9 @@
 #include "board.hpp"
 
 class PGNHandler {
+
+    Move sanToMoveObj(std::string sanMove);
+    
     public:
         std::vector<Move> parseFile(std::string filePath, Board& board);
 

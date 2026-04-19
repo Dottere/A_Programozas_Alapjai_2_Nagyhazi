@@ -18,6 +18,8 @@ class Board {
     // A tábla 8x8-as tömbje, mely Bábu osztály mutatókat tartalmaz.
     Piece* board[8][8];
 
+    Position findKing(Color c);
+
     public:
         Board();
         Board(const Board& b);

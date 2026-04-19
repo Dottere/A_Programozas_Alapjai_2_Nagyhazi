@@ -7,8 +7,14 @@
 #include <vector>
 
 struct Move {
-    int start_x, start_y;
-    int end_x, end_y;
+
+    Move(Position start, Position end, bool isCapture, bool isCastle, bool isEnPassant, bool isCheck,
+    char movedPiece, char promotedTo, Piece* capturedPiece) : startPos(start), endPos(end), isCapture(isCapture),
+    isCastle(isCastle), isEnPassant(isEnPassant), isCheck(isCheck), movedPiece(movedPiece), promotedTo(promotedTo),
+    capturedPiece(capturedPiece) {;}
+
+    Position startPos;
+    Position endPos;
 
     bool isCapture;
     bool isCastle;
@@ -45,9 +51,9 @@ public:
 
         Piece* target = board.getPiece(endPos);
 
-        if (p->isValidMove(startPos.x, startPos.y, endPos.x, endPos.y, target)) {
+        if (p->isValidMove(startPos, endPos, target)) {
             // horse doesn't need Board::isPathClear !!
-            if (board.isPathClear(startPos.x, startPos.y, endPos.x, endPos.y)) {
+            if (board.isPathClear(startPos, endPos)) {
                 // physically move
                 return true;
             }
