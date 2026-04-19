@@ -6,10 +6,6 @@
 #include "piece.hpp"
 #include <vector>
 
-/*
-NOT YET FINISHED
-*/
-
 struct Move {
     int start_x, start_y;
     int end_x, end_y;
@@ -36,24 +32,23 @@ public:
     void gameLoop() {
         while (true) {
             renderer.display();
-            // 1. Bemenet bekérése (pl. "e2 e4")
-            // 2. Koordinátákra bontás
+            // 1. take input in some form, maybe pgn, maybe a more intuitive way for the player (more code more annoyance)
+            // 2. make into coords
             // 3. processMove(x1, y1, x2, y2)
-            // 4. Játékos váltása, ha sikeres volt a lépés
+            // 4. change turn
         }
     }
 
-    bool processMove(int x1, int y1, int x2, int y2) {
-        Piece* p = board.getPiece(x1, y1);
+    bool processMove(Position startPos, Position endPos) {
+        Piece* p = board.getPiece(startPos);
         if (!p || p->getColor() != turn) return false;
 
-        Piece* target = board.getPiece(x2, y2);
+        Piece* target = board.getPiece(endPos);
 
-        if (p->isValidMove(x1, y1, x2, y2, target)) {
-            // A huszárnak nem kell isPathClear, mindenki másnak igen
-            // (Ezért is jó az isPathClear-ben a currX != x_end feltétel!)
-            if (board.isPathClear(x1, y1, x2, y2)) {
-                // Itt történne meg a tényleges mozgatás a board tömbben
+        if (p->isValidMove(startPos.x, startPos.y, endPos.x, endPos.y, target)) {
+            // horse doesn't need Board::isPathClear !!
+            if (board.isPathClear(startPos.x, startPos.y, endPos.x, endPos.y)) {
+                // physically move
                 return true;
             }
         }

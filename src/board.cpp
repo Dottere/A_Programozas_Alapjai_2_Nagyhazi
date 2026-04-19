@@ -1,4 +1,5 @@
 #include "board.hpp"
+
 #include <cmath>
 
 Board::Board() {
@@ -15,7 +16,7 @@ Board::~Board() {
         for (int i = 0; i < 8; i++){
 
         for (int j = 0; j < 8; j++) {
-            if (board[i][j] != nullptr) delete board[i][j];
+            delete board[i][j];
         }
 
     }
@@ -36,5 +37,12 @@ bool Board::isPathClear(int x_start, int y_start, int x_end, int y_end) const {
         currY += stepY;
     }
 
+    return true;
+}
+
+bool Board::placePiece(Piece& piece, Position pos) {
+    if (!isOnBoard(pos)) return false;
+
+    board[pos.x][pos.y] = &piece;
     return true;
 }

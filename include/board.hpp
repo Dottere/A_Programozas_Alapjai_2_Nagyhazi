@@ -28,8 +28,8 @@ class Board {
          * @param y Behatárolja az oszlopot, y koordináta
          * @return True/Igaz ha rajta van, False/Hamis ha nincs.
         */
-        inline bool isOnBoard(int x, int y) const { 
-            return (x >= 0 && x <= 7 && y >= 0 && y <= 7); 
+        inline bool isOnBoard(Position pos) const { 
+            return (pos.x >= 0 && pos.x <= 7 && pos.y >= 0 && pos.y <= 7); 
         }
 
         /**
@@ -38,27 +38,25 @@ class Board {
          * @param y Behatárolja az oszlopot, y koordináta
          * @return Bábu mutató, vagy nullptr ha nem áll ott bábu
          */
-        inline Piece* getPiece(int x, int y) {
-            return board[x][y];
+        inline Piece* getPiece(Position pos) {
+            return board[pos.x][pos.y];
         }
 
         /** 
          * @copydoc getPiece(int, int)  
         */ 
-        inline const Piece* getPiece(int x, int y) const {
-            return board[x][y];
+        inline const Piece* getPiece(Position pos) const {
+            return board[pos.x][pos.y];
         }
 
         /**
          * @brief Megmondja, hogy a lépés a táblán történik-e.
-         * @param x_start A kezdő x koordináta
-         * @param y_start A kezdő y koordináta
-         * @param x_end A végső x koordináta
-         * @param y_end A végső y koordináta
+         * @param startPos A kezdő x és y koordináták.
+         * @param endPos a végső x és y koordináták.
          * @return True/Igaz, ha mindkettő rajta van, False/Hamis ha nem.
          */
-        inline bool isWithinBounds(int x_start, int y_start, int x_end, int y_end) const {
-            return (isOnBoard(x_start, y_start) && isOnBoard(x_end, y_end));
+        inline bool isWithinBounds(Position startPos, Position endPos) const {
+            return (isOnBoard(startPos) && isOnBoard(endPos));
         }
         
         /**
@@ -73,6 +71,8 @@ class Board {
 
         bool isCheck(Color c);
         bool isCheckMate(Color c);
+
+        bool placePiece(Piece& piece, Position pos);
 };
 
 #endif

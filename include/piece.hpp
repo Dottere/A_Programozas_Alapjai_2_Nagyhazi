@@ -5,12 +5,24 @@
 * Ez a fejlécfájl lesz felelős a bábu ősosztály és az abból származtatott összes többi bábu megvalósításával.
 */
 
+#include <string>
+
 /**
  * @brief Egy szimpla enum amely nevesíti a bábuk színeit.
  */
 enum class Color {
     WHITE,
     BLACK
+};
+
+/**
+ * @brief Az olvashatóság és egyszerűség kedvéért egy az x és y koordinátákat egyesítő struktúra
+ */
+struct Position{
+    Position(int x, int y) : x(x), y(y) {;}
+
+    int x;
+    int y;
 };
 
 /**

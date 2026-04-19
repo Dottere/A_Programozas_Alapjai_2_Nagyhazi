@@ -1,13 +1,18 @@
-#include <iostream>
 #include "renderer.hpp"
 
+#include <iostream>
+
 void Renderer::display() {
-    for (int x = 0; x < 8; x++) {
-    for (int y = 0; y < 8; y++) {
-        const Piece* p = board.getPiece(x, y);
-        if (p) std::cout << "P "; // Ide jöhetnek az Unicode karakterek
-        else std::cout << ". ";
+    for (int y = 7; y >= 0; y--) { 
+        for (int x = 0; x < 8; x++) {
+            const Piece* p = board.getPiece(Position(x, y));
+            
+            if (p) {
+                std::cout << p->getSymbol() << " "; 
+            } else {
+                std::cout << "\uFF0E"; // Fullwidth dot (U+FF0E)
+            }
+        }
+        std::cout << std::endl;
     }
-    std::cout << std::endl;
-}
 }
