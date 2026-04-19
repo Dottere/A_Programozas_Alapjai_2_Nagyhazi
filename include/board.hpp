@@ -20,6 +20,7 @@ class Board {
 
     public:
         Board();
+        Board(const Board& b);
         ~Board();
 
         /** 

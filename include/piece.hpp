@@ -58,6 +58,7 @@ class Piece {
          * @return True/Igaz ha a bábu szabályainak megfelelnek a paraméterek, ellenben False/Hamis
         */
         virtual bool isValidMove(int x_start, int y_start, int x_end, int y_end, const Piece* TargetPiece) const = 0;
+        virtual Piece* clone() const = 0;
 
         /**
          * @brief Visszaadja a bábu színét
@@ -78,13 +79,13 @@ class Piece {
 
         inline const std::string& getSymbol() const { 
             return symbol; 
-        }    
+        }
 };
 
 class Rook : public Piece {
     public:
         Rook(Color color) : Piece(color) {
-            symbol = (color == Color::WHITE) ? "\u2656" : "\u265C"; 
+            symbol = (color == Color::WHITE) ? "\u265C" : "\u265C";  // \u2656 for white, now uses black for better coloring
         }
 
         /** 
@@ -101,51 +102,75 @@ class Rook : public Piece {
          * @return True/Igaz ha a bábu szabályainak megfelelnek a paraméterek, ellenben False/Hamis
         */ 
         bool isValidMove(int x_start, int y_start, int x_end, int y_end, const Piece* TargetPiece) const override;
+
+        Piece* clone() const override {
+            return new Rook(*this);
+        }
 };
 
 class Knight : public Piece {
     public:
         Knight(Color color) : Piece(color) {
-            symbol = (color == Color::WHITE) ? "\u2658" : "\u265E"; 
+            symbol = (color == Color::WHITE) ? "\u265E" : "\u265E"; // \u2658 for white, now uses black for better coloring
         }
 
         bool isValidMove(int x_start, int y_start, int x_end, int y_end, const Piece* TargetPiece) const override;
+
+        Piece* clone() const override {
+            return new Knight(*this);
+        }
 };
 
 class Bishop : public Piece {
     public:
         Bishop(Color color) : Piece(color) {
-            symbol = (color == Color::WHITE) ? "\u2657" : "\u265D";
+            symbol = (color == Color::WHITE) ? "\u265D" : "\u265D"; // \u2657 for white, now uses black for better coloring
         }
 
         bool isValidMove(int x_start, int y_start, int x_end, int y_end, const Piece* TargetPiece) const override;
+
+        Piece* clone() const override {
+            return new Bishop(*this);
+        }
 };
 
 class Queen : public Piece {
     public:
         Queen(Color color) : Piece(color) {
-            symbol = (color == Color::WHITE) ? "\u2655" : "\u265B";
+            symbol = (color == Color::WHITE) ? "\u265B" : "\u265B"; // \u2655 for white, now uses black for better coloring
         }
 
         bool isValidMove(int x_start, int y_start, int x_end, int y_end, const Piece* TargetPiece) const override;
+
+        Piece* clone() const override {
+            return new Queen(*this);
+        }
 };
 
 class King : public Piece {
     public:
         King(Color color) : Piece(color) {
-            symbol = (color == Color::WHITE) ? "\u2654" : "\u265A";
+            symbol = (color == Color::WHITE) ? "\u265A" : "\u265A"; // \u2654 for white, now uses black for better coloring
         }
 
         bool isValidMove(int x_start, int y_start, int x_end, int y_end, const Piece* TargetPiece) const override;
+
+        Piece* clone() const override {
+            return new King(*this);
+        }
 };
 
 class Pawn : public Piece {
     public:
         Pawn(Color color) : Piece(color) {
-            symbol = (color == Color::WHITE) ? "\u2659" : "\u265F";
+            symbol = (color == Color::WHITE) ? "\u265F" : "\u265F"; // \u2659 for white, now uses black for better coloring
         }
 
         bool isValidMove(int x_start, int y_start, int x_end, int y_end, const Piece* TargetPiece) const override;
+        
+        Piece* clone() const override {
+            return new Pawn(*this);
+        }
 };
 
 #endif

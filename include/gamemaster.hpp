@@ -34,7 +34,7 @@ public:
             renderer.display();
             // 1. take input in some form, maybe pgn, maybe a more intuitive way for the player (more code more annoyance)
             // 2. make into coords
-            // 3. processMove(x1, y1, x2, y2)
+            // 3. processMove(startPos, endPos)
             // 4. change turn
         }
     }

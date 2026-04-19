@@ -12,6 +12,17 @@ Board::Board() {
     }
 }
 
+Board::Board(const Board& b) {
+    for (int i = 0; i < 8; i++){
+        for (int j = 0; j < 8; j++) {
+            if (b.board[i][j] != nullptr)
+                board[i][j] = b.board[i][j]->clone();
+            else 
+                board[i][j] = nullptr;
+        }
+    }
+}
+
 Board::~Board() {
         for (int i = 0; i < 8; i++){
 
