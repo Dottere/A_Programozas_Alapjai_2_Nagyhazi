@@ -57,7 +57,7 @@ class Piece {
          * 
          * @return True/Igaz ha a bábu szabályainak megfelelnek a paraméterek, ellenben False/Hamis
         */
-        virtual bool isValidMove(int x_start, int y_start, int x_end, int y_end, const Piece* TargetPiece) const = 0;
+        virtual bool isValidMove(Position startPos, Position endPos, const Piece* TargetPiece) const = 0;
         virtual Piece* clone() const = 0;
 
         /**
@@ -85,7 +85,7 @@ class Piece {
 class Rook : public Piece {
     public:
         Rook(Color color) : Piece(color) {
-            symbol = (color == Color::WHITE) ? "\u265C" : "\u265C";  // \u2656 for white, now uses black for better coloring
+            symbol = (color == Color::WHITE) ? "\u2656" : "\u265C";
         }
 
         /** 
@@ -101,7 +101,7 @@ class Rook : public Piece {
          * @param TargetPiece A végső mezőn álló bábura mutató, ha nem áll ott semmi akkor nullptr
          * @return True/Igaz ha a bábu szabályainak megfelelnek a paraméterek, ellenben False/Hamis
         */ 
-        bool isValidMove(int x_start, int y_start, int x_end, int y_end, const Piece* TargetPiece) const override;
+        bool isValidMove(Position startPos, Position endPos, const Piece* TargetPiece) const override;
 
         Piece* clone() const override {
             return new Rook(*this);
@@ -111,10 +111,10 @@ class Rook : public Piece {
 class Knight : public Piece {
     public:
         Knight(Color color) : Piece(color) {
-            symbol = (color == Color::WHITE) ? "\u265E" : "\u265E"; // \u2658 for white, now uses black for better coloring
+            symbol = (color == Color::WHITE) ? "\u2658" : "\u265E";
         }
 
-        bool isValidMove(int x_start, int y_start, int x_end, int y_end, const Piece* TargetPiece) const override;
+        bool isValidMove(Position startPos, Position endPos, const Piece* TargetPiece) const override;
 
         Piece* clone() const override {
             return new Knight(*this);
@@ -124,10 +124,10 @@ class Knight : public Piece {
 class Bishop : public Piece {
     public:
         Bishop(Color color) : Piece(color) {
-            symbol = (color == Color::WHITE) ? "\u265D" : "\u265D"; // \u2657 for white, now uses black for better coloring
+            symbol = (color == Color::WHITE) ? "\u2657" : "\u265D";
         }
 
-        bool isValidMove(int x_start, int y_start, int x_end, int y_end, const Piece* TargetPiece) const override;
+        bool isValidMove(Position startPos, Position endPos, const Piece* TargetPiece) const override;
 
         Piece* clone() const override {
             return new Bishop(*this);
@@ -137,10 +137,10 @@ class Bishop : public Piece {
 class Queen : public Piece {
     public:
         Queen(Color color) : Piece(color) {
-            symbol = (color == Color::WHITE) ? "\u265B" : "\u265B"; // \u2655 for white, now uses black for better coloring
+            symbol = (color == Color::WHITE) ? "\u2655" : "\u265B";
         }
 
-        bool isValidMove(int x_start, int y_start, int x_end, int y_end, const Piece* TargetPiece) const override;
+        bool isValidMove(Position startPos, Position endPos, const Piece* TargetPiece) const override;
 
         Piece* clone() const override {
             return new Queen(*this);
@@ -150,10 +150,10 @@ class Queen : public Piece {
 class King : public Piece {
     public:
         King(Color color) : Piece(color) {
-            symbol = (color == Color::WHITE) ? "\u265A" : "\u265A"; // \u2654 for white, now uses black for better coloring
+            symbol = (color == Color::WHITE) ? "\u2654" : "\u265A";
         }
 
-        bool isValidMove(int x_start, int y_start, int x_end, int y_end, const Piece* TargetPiece) const override;
+        bool isValidMove(Position startPos, Position endPos, const Piece* TargetPiece) const override;
 
         Piece* clone() const override {
             return new King(*this);
@@ -163,10 +163,10 @@ class King : public Piece {
 class Pawn : public Piece {
     public:
         Pawn(Color color) : Piece(color) {
-            symbol = (color == Color::WHITE) ? "\u265F" : "\u265F"; // \u2659 for white, now uses black for better coloring
+            symbol = (color == Color::WHITE) ? "\u265F" : "\u265F";
         }
 
-        bool isValidMove(int x_start, int y_start, int x_end, int y_end, const Piece* TargetPiece) const override;
+        bool isValidMove(Position startPos, Position endPos, const Piece* TargetPiece) const override;
         
         Piece* clone() const override {
             return new Pawn(*this);

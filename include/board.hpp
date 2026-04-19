@@ -68,7 +68,7 @@ class Board {
          * @param y_end A végső y koordináta
          * @return True/Igaz, ha mindkettő rajta van, False/Hamis ha nem.
          */
-        bool isPathClear(int x_start, int y_start, int x_end, int y_end) const;
+        bool isPathClear(Position startPos, Position endPos) const;
 
         bool isCheck(Color c);
         bool isCheckMate(Color c);

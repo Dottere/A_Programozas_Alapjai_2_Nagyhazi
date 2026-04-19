@@ -1,13 +1,14 @@
 #include "piece.hpp"
+
 #include <cmath>
 
 // Rook
 
-bool Rook::isValidMove(int x_start, int y_start, int x_end, int y_end, const Piece* TargetPiece) const {
-    if (x_start == x_end && y_start == y_end) return false;
+bool Rook::isValidMove(Position startPos, Position endPos, const Piece* TargetPiece) const {
+    if (startPos.x == endPos.x && startPos.x == endPos.y) return false;
 
-    int dx = std::abs(x_end - x_start);
-    int dy = std::abs(y_end - y_start);
+    int dx = std::abs(endPos.x - startPos.x);
+    int dy = std::abs(endPos.y - startPos.x);
     if (!(dx == 0 || dy == 0)) return false;
 
     if (TargetPiece != nullptr) {
@@ -19,11 +20,11 @@ bool Rook::isValidMove(int x_start, int y_start, int x_end, int y_end, const Pie
 
 // Knight
 
-bool Knight::isValidMove(int x_start, int y_start, int x_end, int y_end, const Piece* TargetPiece) const {
-    if (x_start == x_end && y_start == y_end) return false;
+bool Knight::isValidMove(Position startPos, Position endPos, const Piece* TargetPiece) const {
+    if (startPos.x == endPos.x && startPos.x == endPos.y) return false;
 
-    int dx = std::abs(x_end - x_start);
-    int dy = std::abs(y_end - y_start);
+    int dx = std::abs(endPos.x - startPos.x);
+    int dy = std::abs(endPos.y - startPos.x);
     if (
         !( (dx == 2 && dy == 1) || (dx == 1 && dy == 2) )
     ) return false;
@@ -37,11 +38,11 @@ bool Knight::isValidMove(int x_start, int y_start, int x_end, int y_end, const P
 
 // Bishop
 
-bool Bishop::isValidMove(int x_start, int y_start, int x_end, int y_end, const Piece* TargetPiece) const {
-    if (x_start == x_end && y_start == y_end) return false;
+bool Bishop::isValidMove(Position startPos, Position endPos, const Piece* TargetPiece) const {
+    if (startPos.x == endPos.x && startPos.x == endPos.y) return false;
 
-    int dx = std::abs(x_end - x_start);
-    int dy = std::abs(y_end - y_start);
+    int dx = std::abs(endPos.x - startPos.x);
+    int dy = std::abs(endPos.y - startPos.x);
     if (dx != dy) return false;
 
     if (TargetPiece != nullptr) {
@@ -54,11 +55,11 @@ bool Bishop::isValidMove(int x_start, int y_start, int x_end, int y_end, const P
 
 // Queen
 
-bool Queen::isValidMove(int x_start, int y_start, int x_end, int y_end, const Piece* TargetPiece) const {
-    if (x_start == x_end && y_start == y_end) return false;
+bool Queen::isValidMove(Position startPos, Position endPos, const Piece* TargetPiece) const {
+    if (startPos.x == endPos.x && startPos.x == endPos.y) return false;
 
-    int dx = std::abs(x_end - x_start);
-    int dy = std::abs(y_end - y_start);
+    int dx = std::abs(endPos.x - startPos.x);
+    int dy = std::abs(endPos.y - startPos.x);
 
     if ( !( (dx == 0 || dy == 0) || (dx == dy) ) ) return false;
 
@@ -72,11 +73,11 @@ bool Queen::isValidMove(int x_start, int y_start, int x_end, int y_end, const Pi
 
 // King
 
-bool King::isValidMove(int x_start, int y_start, int x_end, int y_end, const Piece* TargetPiece) const {
-    if (x_start == x_end && y_start == y_end) return false;
+bool King::isValidMove(Position startPos, Position endPos, const Piece* TargetPiece) const {
+    if (startPos.x == endPos.x && startPos.x == endPos.y) return false;
 
-    int dx = std::abs(x_end - x_start);
-    int dy = std::abs(y_end - y_start);
+    int dx = std::abs(endPos.x - startPos.x);
+    int dy = std::abs(endPos.y - startPos.x);
 
     if (dx > 1 || dy > 1) return false;
 
@@ -89,13 +90,13 @@ bool King::isValidMove(int x_start, int y_start, int x_end, int y_end, const Pie
 
 // Pawn
 
-bool Pawn::isValidMove(int x_start, int y_start, int x_end, int y_end, const Piece* TargetPiece) const {
-    if (x_start == x_end && y_start == y_end) return false;
+bool Pawn::isValidMove(Position startPos, Position endPos, const Piece* TargetPiece) const {
+    if (startPos.x == endPos.x && startPos.x == endPos.y) return false;
 
     int direction = this->getColor() == Color::WHITE ? 1 : -1;
     
-    int dx = std::abs(x_end - x_start);
-    int dy = y_end - y_start;
+    int dx = std::abs(endPos.x - startPos.x);
+    int dy = endPos.y - startPos.x;
 
     if (dx == 0) {
         if (TargetPiece != nullptr) return false;

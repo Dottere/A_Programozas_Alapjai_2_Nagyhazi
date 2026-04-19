@@ -33,21 +33,20 @@ Board::~Board() {
     }
 }
 
-bool Board::isPathClear(int x_start, int y_start, int x_end, int y_end) const {
-    int stepX = (x_end > x_start) ? 1 : ((x_end < x_start) ? -1 : 0);
-    int stepY = (y_end > y_start) ? 1 : ((y_end < y_start) ? -1 : 0);
+bool Board::isPathClear(Position startPos, Position endPos) const {
+    int stepX = (endPos.x > startPos.x) ? 1 : ((endPos.x < startPos.x) ? -1 : 0);
+    int stepY = (endPos.y > startPos.y) ? 1 : ((endPos.y < startPos.y) ? -1 : 0);
 
-    int currX = x_start + stepX;
-    int currY = y_start + stepY;
+    int currX = startPos.x + stepX;
+    int currY = startPos.y + stepY;
 
-    while (currX != x_end || currY != y_end) {
+    while (currX != endPos.x || currY != endPos.y) {
         if (board[currX][currY] != nullptr) {
             return false;
         }
         currX += stepX;
         currY += stepY;
     }
-
     return true;
 }
 
