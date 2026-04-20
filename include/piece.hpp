@@ -38,6 +38,7 @@ class Piece {
     protected: 
         std::string symbol;
         bool isKingFlag = false;
+        char pieceType;
 
     public:
         Piece(Color color) : PieceColor(color) {;}
@@ -83,12 +84,25 @@ class Piece {
         inline const std::string& getSymbol() const { 
             return symbol; 
         }
+
+        inline char getPieceType() const {
+            return pieceType;
+        }
+
+        inline bool isWhite() const {
+            return (PieceColor == Color::WHITE);
+        }
+
+        virtual inline bool canJump() const {
+            return false;
+        }
 };
 
 class Rook : public Piece {
     public:
         Rook(Color color) : Piece(color) {
             symbol = (color == Color::WHITE) ? "\u2656" : "\u265C";
+            pieceType = 'R';
         }
 
         /** 
@@ -115,6 +129,7 @@ class Knight : public Piece {
     public:
         Knight(Color color) : Piece(color) {
             symbol = (color == Color::WHITE) ? "\u2658" : "\u265E";
+            pieceType = 'N';
         }
 
         bool isValidMove(Position startPos, Position endPos, const Piece* TargetPiece) const override;
@@ -122,12 +137,17 @@ class Knight : public Piece {
         Piece* clone() const override {
             return new Knight(*this);
         }
+
+        inline bool canJump() const override {
+            return true;
+        }
 };
 
 class Bishop : public Piece {
     public:
         Bishop(Color color) : Piece(color) {
             symbol = (color == Color::WHITE) ? "\u2657" : "\u265D";
+            pieceType = 'B';
         }
 
         bool isValidMove(Position startPos, Position endPos, const Piece* TargetPiece) const override;
@@ -141,6 +161,7 @@ class Queen : public Piece {
     public:
         Queen(Color color) : Piece(color) {
             symbol = (color == Color::WHITE) ? "\u2655" : "\u265B";
+            pieceType = 'Q';
         }
 
         bool isValidMove(Position startPos, Position endPos, const Piece* TargetPiece) const override;
@@ -155,6 +176,7 @@ class King : public Piece {
         King(Color color) : Piece(color) {
             symbol = (color == Color::WHITE) ? "\u2654" : "\u265A";
             isKingFlag = true;
+            pieceType = 'K';
         }
 
         bool isValidMove(Position startPos, Position endPos, const Piece* TargetPiece) const override;
@@ -167,7 +189,8 @@ class King : public Piece {
 class Pawn : public Piece {
     public:
         Pawn(Color color) : Piece(color) {
-            symbol = (color == Color::WHITE) ? "\u265F" : "\u265F";
+            symbol = (color == Color::WHITE) ? "\u2659" : "\u265F";
+            pieceType = 'P';
         }
 
         bool isValidMove(Position startPos, Position endPos, const Piece* TargetPiece) const override;

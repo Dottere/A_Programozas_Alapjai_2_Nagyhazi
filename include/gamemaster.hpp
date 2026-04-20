@@ -30,31 +30,36 @@ struct Move {
 class GameMaster {
     Board board;
     Renderer renderer;
-    Color turn = Color::WHITE;
 
     std::vector<Move> moveHistory;
 
 public:
-    void gameLoop() {
+
+    GameMaster(const Board& board, const Renderer& renderer) : board(board), renderer(renderer) {;}
+
+    inline void gameLoop() {
+
+        std::string placeholder;
+
         while (true) {
             renderer.display();
             // 1. take input in some form, maybe pgn, maybe a more intuitive way for the player (more code more annoyance)
+            std::cin >> placeholder;
             // 2. make into coords
             // 3. processMove(startPos, endPos)
             // 4. change turn
         }
     }
 
-    bool processMove(Position startPos, Position endPos) {
+    inline bool processMove(Position startPos, Position endPos) {
         Piece* p = board.getPiece(startPos);
-        if (!p || p->getColor() != turn) return false;
+        if (!p || p->getColor() != board.getTurn()) return false;
 
         Piece* target = board.getPiece(endPos);
 
         if (p->isValidMove(startPos, endPos, target)) {
-            // horse doesn't need Board::isPathClear !!
-            if (board.isPathClear(startPos, endPos)) {
-                // physically move
+            if (p->canJump() || board.isPathClear(startPos, endPos)) {
+                // move impl, tbd
                 return true;
             }
         }

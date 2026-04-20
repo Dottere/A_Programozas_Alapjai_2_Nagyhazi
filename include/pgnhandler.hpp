@@ -6,8 +6,8 @@
 
 class PGNHandler {
 
-    Move sanToMoveObj(std::string sanMove);
-    
+    Move sanToMoveObj(std::string sanMove, Board& board, bool isWhiteToMove);
+
     public:
         std::vector<Move> parseFile(std::string filePath, Board& board);
 

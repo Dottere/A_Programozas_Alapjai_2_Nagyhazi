@@ -17,6 +17,7 @@
 class Board {
     // A tábla 8x8-as tömbje, mely Bábu osztály mutatókat tartalmaz.
     Piece* board[8][8];
+    Color turn = Color::WHITE;
 
     Position findKing(Color c);
 
@@ -75,7 +76,20 @@ class Board {
         bool isCheck(Color c);
         bool isCheckMate(Color c);
 
-        bool placePiece(Piece& piece, Position pos);
+        bool placePiece(Piece* piece, Position pos);
+
+        Position findStartSquare(char pieceType, bool isWhiteToMove, Position endPos, char fileDisambiguity, char rankDisambiguity);
+
+        inline bool isWhiteToMove() const {
+            return (turn == Color::WHITE);
+        }
+
+        inline Color getTurn() const {
+            return turn;
+        }
+
+        void clearBoard();
+        bool loadFromFEN(const std::string& fen);
 };
 
 #endif
