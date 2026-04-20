@@ -1,7 +1,37 @@
-1.	Feladat
-A feladat lényege C++ nyelven objektum orientált paradigmákkal megvalósítani egy olyan parancssoros interfészen keresztül játszható sakkjátékot, amely ezen felül képes általános PGN formátumban megadott akár harmadik félnél (chess.com, lichess.org, etc…) játszott régebbi játékokat, vagy ezen program által generált játékokat visszajátszani. Minden véget ért meccs végén – legyen az lejátszott, vagy akár félbeszakított – megadja az addigi lépésekből álló PGN-t.
+# Parancssoros Sakkjáték (CLI Chess) ♟️
 
-2.	Feladatspecifikáció
-A feladat egy olyan sakkjáték elkészítése, amely képes a játék szabályait betartatni. Ennek alapjául két atomi osztály fog társulni, egy a táblát kezelő osztály mely kezeli a tábla állapotát, és végrehajtja a lépéseket, ha azok lehetségesek. A második pedig egy minden bábuhoz tartozó ősosztály, szimplán csak bábu, amely tartalmazni fog egy tisztán virtuális függvényt, amely a lépés logikáját valósítja meg.
-A fentebb említett oldalakon van módunk változtatni a visszajátszott játékok menetén, ez most itt nem lesz lehetséges, viszont a lépések között oda-vissza lehet majd lépkedni, és azt személyesen elemezni.
-A program rendelkezni fog egyetlen egy opcionális parancssoros bemenettel, az pedig vagy egy a PGN-t tartalmazó fájl elérési útja, vagy maga a PGN lesz. Ezek közül kapcsolókkal (flag) lehet majd választani.
+Egy C++ nyelven, objektumorientált paradigmákkal megvalósított parancssoros sakkjáték. A program nem csak a hagyományos sakk szabályait ismeri és tartatja be, de képes szabványos PGN (Portable Game Notation) fájlok beolvasására, lejátszására és generálására is.
+
+## 🌟 Főbb funkciók
+* **Teljes körű sakkszabályzat:** Támogatja a speciális lépéseket is (en passant, sáncolás, gyalogátváltozás).
+* **Játékállapot felügyelete:** Sakk, matt, patt, 50 lépéses szabály és 3 lépéses ismétlés felismerése.
+* **PGN Támogatás:** * Korábbi (pl. chess.com, lichess.org) PGN fájlok beolvasása és visszajátszása (oda-vissza léptetéssel).
+    * Lejátszott vagy félbeszakított mérkőzések exportálása PGN formátumba.
+
+## 🚀 Telepítés és Futtatás
+
+**Előfeltételek:**
+* C++ fordító (pl. GCC, Clang)
+* Make (opcionális, ha Makefile-t használsz)
+
+**Fordítás:**
+```bash
+g++ -o chess main.cpp [egyéb .cpp fájlok]
+```
+
+**Futtatás:**
+A játék indítása normál módban:
+```bash
+./chess
+```
+
+PGN fájl betöltése visszajátszáshoz:
+```bash
+./chess --pgn [fájl_elérési_útja.pgn]
+```
+
+## 📖 Fejlesztői Dokumentáció
+Ha érdekel a program belső felépítése (osztálydiagramok, algoritmusok, és a `Piece` ősosztály logikája), kérlek olvasd el a részletes [Feladatspecifikációt és Tervezetet](docs/Feladatspecifikacio.pdf).
+
+## 👨‍💻 Készítette
+* **Balogh Tamás** - *Programozás alapjai II. Nagyházi*
