@@ -104,7 +104,7 @@ Move PGNHandler::sanToMoveObj(std::string sanMove, Board& board, bool isWhiteToM
 
     Position startPos{-1,-1};
     Position endPos{-1,-1};
-    Piece* capturedPiece = nullptr;
+    Piece* capturedPiecePtr = nullptr;
 
     if (sanMove.back() == '+' || sanMove.back() == '#') {
         isCheck = true;
@@ -166,16 +166,14 @@ Move PGNHandler::sanToMoveObj(std::string sanMove, Board& board, bool isWhiteToM
     startPos = board.findStartSquare(movedPiece, isWhiteToMove, endPos, fileDisambiguity, rankDisambiguity);
 
     if (isCapture) {
-        capturedPiece = board.getPiece(endPos);
+        capturedPiecePtr = board.getPiece(endPos);
 
-        if (movedPiece == 'P' && capturedPiece == nullptr) {
+        if (movedPiece == 'P' && capturedPiecePtr == nullptr) {
             isEnPassant = true;
-        
             Position epPawnPos(endPos.x, startPos.y);
-
-            capturedPiece = board.getPiece(epPawnPos);
+            capturedPiecePtr = board.getPiece(epPawnPos);
         }
     }
 
-    return Move(startPos, endPos, isCapture, isCastle, isEnPassant, isCheck, movedPiece, promotedTo, capturedPiece);
-}
+    return Move(startPos, endPos, isCapture, isCastle, isEnPassant, isCheck, movedPiece, promotedTo, capturedPiecePtr);
+}   

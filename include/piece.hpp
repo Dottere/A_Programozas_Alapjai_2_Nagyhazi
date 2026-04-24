@@ -12,7 +12,8 @@
  */
 enum class Color {
     WHITE,
-    BLACK
+    BLACK,
+    NONE
 };
 
 /**

@@ -3,6 +3,8 @@
 
 #include "piece.hpp"
 
+#include <memory>
+
 /*
 * Ez a fejlécfájl lesz felelős a tábla kezeléséért, a bábuk reprezentációjáért. A tábla önmagában egy 8x8-as tömb,
 * amely Bábu mutatókat tartalmaz. Ezen felül felelős lesz a PGN értelmezéséért.
@@ -16,15 +18,15 @@
 */
 class Board {
     // A tábla 8x8-as tömbje, mely Bábu osztály mutatókat tartalmaz.
-    Piece* board[8][8];
+    std::unique_ptr<Piece> board[8][8];
     Color turn = Color::WHITE;
 
     Position findKing(Color c);
 
     public:
-        Board();
+        Board() = default;
         Board(const Board& b);
-        ~Board();
+        ~Board() = default;
 
         /** 
          * @brief Megmondja, hogy a megadott koordináta rajta van-e a táblán.
@@ -43,14 +45,14 @@ class Board {
          * @return Bábu mutató, vagy nullptr ha nem áll ott bábu
          */
         inline Piece* getPiece(Position pos) {
-            return board[pos.x][pos.y];
+            return board[pos.x][pos.y].get();
         }
 
         /** 
          * @copydoc getPiece(int, int)  
         */ 
         inline const Piece* getPiece(Position pos) const {
-            return board[pos.x][pos.y];
+            return board[pos.x][pos.y].get();
         }
 
         /**

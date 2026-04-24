@@ -4,34 +4,12 @@
 #include <vector>
 #include <iostream> 
 
-Board::Board() {
-    for (int i = 0; i < 8; i++){
-
-        for (int j = 0; j < 8; j++) {
-            board[i][j] = nullptr;
-        }
-
-    }
-}
-
 Board::Board(const Board& b) {
     for (int i = 0; i < 8; i++){
         for (int j = 0; j < 8; j++) {
-            if (b.board[i][j] != nullptr)
-                board[i][j] = b.board[i][j]->clone();
-            else 
-                board[i][j] = nullptr;
+            if (b.board[i][j])
+                board[i][j] = std::unique_ptr<Piece>(board[i][j]->clone());
         }
-    }
-}
-
-Board::~Board() {
-        for (int i = 0; i < 8; i++){
-
-        for (int j = 0; j < 8; j++) {
-            delete board[i][j];
-        }
-
     }
 }
 
@@ -53,9 +31,11 @@ bool Board::isPathClear(Position startPos, Position endPos) const {
 }
 
 bool Board::placePiece(Piece* piece, Position pos) {
+    std::unique_ptr<Piece> incoming(piece);
+
     if (!isOnBoard(pos)) return false;
 
-    board[pos.x][pos.y] = piece;
+    board[pos.x][pos.y] = std::move(incoming);
     return true;
 }
 
@@ -80,7 +60,7 @@ bool Board::isCheck(Color c) {
     for (int y = 7; y >= 0; y--) {
         for (int x = 0; x < 8; x++) {
 
-            Piece* attacker = board[x][y];
+            Piece* attacker = board[x][y].get();
 
             if (attacker != nullptr && attacker->getColor() != c) {
                 if (attacker->getPieceType() == 'N' || isPathClear(Position(x,y), kingPos)) {
@@ -116,7 +96,7 @@ bool Board::isCheckMate(Color c) {
                     Piece* clonedPiece = clonedBoard.getPiece(startPos);
                     Piece* targetToCapture = clonedBoard.getPiece(endPos);
 
-                    clonedBoard.board[endPos.x][endPos.y] = clonedPiece;
+                    clonedBoard.board[endPos.x][endPos.y] = std::unique_ptr<Piece>(clonedPiece);
                     clonedBoard.board[startPos.x][startPos.y] = nullptr;
 
                     if (targetToCapture != nullptr) {
@@ -171,10 +151,7 @@ Position Board::findStartSquare(char pieceType, bool isWhiteToMove, Position end
 void Board::clearBoard() {
     for (int y = 0; y < 8; y++) {
         for (int x = 0; x < 8; x++) {
-            if (board[x][y] != nullptr) {
-                delete board[x][y];
-                board[x][y] = nullptr;
-            }
+            board[x][y].reset();
         }
     }
 }
