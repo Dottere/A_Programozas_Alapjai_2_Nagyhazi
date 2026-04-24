@@ -19,11 +19,16 @@ enum class Color {
 /**
  * @brief Az olvashatóság és egyszerűség kedvéért egy az x és y koordinátákat egyesítő struktúra
  */
+template <typename T = int>
 struct Position{
-    Position(int x, int y) : x(x), y(y) {;}
+    T x, y;
 
-    int x;
-    int y;
+    Position(T x, T y) : x(x), y(y) {;}
+
+    template <typename U>
+    bool operator==(const Position<U>& other) const {
+        return x == other.x && y == other.y;
+    }
 };
 
 /**
@@ -62,7 +67,7 @@ class Piece {
          * 
          * @return True/Igaz ha a bábu szabályainak megfelelnek a paraméterek, ellenben False/Hamis
         */
-        virtual bool isValidMove(Position startPos, Position endPos, const Piece* TargetPiece) const = 0;
+        virtual bool isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const = 0;
         virtual Piece* clone() const = 0;
 
         /**
@@ -119,7 +124,7 @@ class Rook : public Piece {
          * @param TargetPiece A végső mezőn álló bábura mutató, ha nem áll ott semmi akkor nullptr
          * @return True/Igaz ha a bábu szabályainak megfelelnek a paraméterek, ellenben False/Hamis
         */ 
-        bool isValidMove(Position startPos, Position endPos, const Piece* TargetPiece) const override;
+        bool isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const override;
 
         Piece* clone() const override {
             return new Rook(*this);
@@ -133,7 +138,7 @@ class Knight : public Piece {
             pieceType = 'N';
         }
 
-        bool isValidMove(Position startPos, Position endPos, const Piece* TargetPiece) const override;
+        bool isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const override;
 
         Piece* clone() const override {
             return new Knight(*this);
@@ -151,7 +156,7 @@ class Bishop : public Piece {
             pieceType = 'B';
         }
 
-        bool isValidMove(Position startPos, Position endPos, const Piece* TargetPiece) const override;
+        bool isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const override;
 
         Piece* clone() const override {
             return new Bishop(*this);
@@ -165,7 +170,7 @@ class Queen : public Piece {
             pieceType = 'Q';
         }
 
-        bool isValidMove(Position startPos, Position endPos, const Piece* TargetPiece) const override;
+        bool isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const override;
 
         Piece* clone() const override {
             return new Queen(*this);
@@ -180,7 +185,7 @@ class King : public Piece {
             pieceType = 'K';
         }
 
-        bool isValidMove(Position startPos, Position endPos, const Piece* TargetPiece) const override;
+        bool isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const override;
 
         Piece* clone() const override {
             return new King(*this);
@@ -194,7 +199,7 @@ class Pawn : public Piece {
             pieceType = 'P';
         }
 
-        bool isValidMove(Position startPos, Position endPos, const Piece* TargetPiece) const override;
+        bool isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const override;
         
         Piece* clone() const override {
             return new Pawn(*this);

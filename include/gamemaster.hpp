@@ -8,7 +8,7 @@
 
 struct Move {
 
-    Move(Position start, Position end, bool isCapture, 
+    Move(Position<> start, Position<> end, bool isCapture, 
     bool isCastle, bool isEnPassant, bool isCheck,
     char movedPiece, char promotedTo, Piece* capturedPiece) 
     : startPos(start), 
@@ -28,8 +28,8 @@ struct Move {
         }
 
     }
-    Position startPos;
-    Position endPos;
+    Position<> startPos;
+    Position<> endPos;
 
     bool isCapture;
     bool isCastle;
@@ -67,7 +67,7 @@ public:
         }
     }
 
-    inline bool processMove(Position startPos, Position endPos) {
+    inline bool processMove(Position<> startPos, Position<> endPos) {
         Piece* p = board.getPiece(startPos);
         if (!p || p->getColor() != board.getTurn()) return false;
 

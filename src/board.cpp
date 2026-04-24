@@ -13,7 +13,7 @@ Board::Board(const Board& b) {
     }
 }
 
-bool Board::isPathClear(Position startPos, Position endPos) const {
+bool Board::isPathClear(Position<> startPos, Position<> endPos) const {
     int stepX = (endPos.x > startPos.x) ? 1 : ((endPos.x < startPos.x) ? -1 : 0);
     int stepY = (endPos.y > startPos.y) ? 1 : ((endPos.y < startPos.y) ? -1 : 0);
 
@@ -35,14 +35,14 @@ bool Board::isPathClear(Position startPos, Position endPos) const {
 
 
 
-bool Board::placePiece(std::unique_ptr<Piece> piece, Position pos) {
+bool Board::placePiece(std::unique_ptr<Piece> piece, Position<> pos) {
     if (!isOnBoard(pos)) return false;
 
     board[pos.x][pos.y] = std::move(piece);
     return true;
 }
 
-Position Board::findKing(Color c) {
+Position<> Board::findKing(Color c) {
     for (int y = 7; y >= 0; y--) {
         for (int x = 0; x < 8; x++) {
             if (board[x][y] != nullptr) {
@@ -117,12 +117,12 @@ bool Board::isCheckMate(Color c) {
     return true;
 }
 
-Position Board::findStartSquare(char pieceType, bool isWhiteToMove, Position endPos, char fileDisambiguation, char rankDisambiguation) {
-    std::vector<Position> candidates;
+Position<> Board::findStartSquare(char pieceType, bool isWhiteToMove, Position<> endPos, char fileDisambiguation, char rankDisambiguation) {
+    std::vector<Position<>> candidates;
 
     for (int x = 0; x < 8; x++) {
         for (int y = 0; y < 8; y++) {
-            Position currentPos(x, y);
+            Position<> currentPos(x, y);
             Piece* p = getPiece(currentPos);
 
             if (p != nullptr && p->getPieceType() == pieceType && p->isWhite() == isWhiteToMove) {

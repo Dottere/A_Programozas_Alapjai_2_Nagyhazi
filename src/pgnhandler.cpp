@@ -61,7 +61,7 @@ std::vector<Move> PGNHandler::parseFile(std::string filePath, Board& board) {
         Piece* movedPiece = board.getPiece(currentMove.startPos);
         Piece*capturedPiece = board.getPiece(currentMove.endPos);
 
-        board.placePiece(movedPiece, currentMove.endPos);
+        board.placePiece(std::unique_ptr<Piece>(movedPiece), currentMove.endPos);
         board.placePiece(nullptr, currentMove.startPos);
 
         if (capturedPiece != nullptr) {
@@ -70,10 +70,14 @@ std::vector<Move> PGNHandler::parseFile(std::string filePath, Board& board) {
 
         if (currentMove.isCastle) {
             if (currentMove.endPos.x == 6) {
-                board.placePiece(board.getPiece(Position(7, currentMove.startPos.y)), Position(5, currentMove.startPos.y));
+                board.placePiece(std::unique_ptr<Piece>(board.getPiece(Position(7, currentMove.startPos.y))), 
+                Position(5, currentMove.startPos.y));
+
                 board.placePiece(nullptr, Position(7, currentMove.startPos.y));
             } else {
-                board.placePiece(board.getPiece(Position(0, currentMove.startPos.y)), Position(3, currentMove.startPos.y));
+                board.placePiece(std::unique_ptr<Piece>(board.getPiece(Position(0, currentMove.startPos.y))), 
+                Position(3, currentMove.startPos.y));
+                
                 board.placePiece(nullptr, Position(0, currentMove.startPos.y));
             }
         }
@@ -170,7 +174,7 @@ Move PGNHandler::sanToMoveObj(std::string sanMove, Board& board, bool isWhiteToM
 
         if (movedPiece == 'P' && capturedPiecePtr == nullptr) {
             isEnPassant = true;
-            Position epPawnPos(endPos.x, startPos.y);
+            Position<> epPawnPos(endPos.x, startPos.y);
             capturedPiecePtr = board.getPiece(epPawnPos);
         }
     }

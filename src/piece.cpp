@@ -4,7 +4,7 @@
 
 // Rook
 
-bool Rook::isValidMove(Position startPos, Position endPos, const Piece* TargetPiece) const {
+bool Rook::isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const {
     if (startPos.x == endPos.x && startPos.y == endPos.y) return false;
 
     int dx = std::abs(endPos.x - startPos.x);
@@ -20,7 +20,7 @@ bool Rook::isValidMove(Position startPos, Position endPos, const Piece* TargetPi
 
 // Knight
 
-bool Knight::isValidMove(Position startPos, Position endPos, const Piece* TargetPiece) const {
+bool Knight::isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const {
     if (startPos.x == endPos.x && startPos.x == endPos.y) return false;
 
     int dx = std::abs(endPos.x - startPos.x);
@@ -38,7 +38,7 @@ bool Knight::isValidMove(Position startPos, Position endPos, const Piece* Target
 
 // Bishop
 
-bool Bishop::isValidMove(Position startPos, Position endPos, const Piece* TargetPiece) const {
+bool Bishop::isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const {
     if (startPos.x == endPos.x && startPos.x == endPos.y) return false;
 
     int dx = std::abs(endPos.x - startPos.x);
@@ -55,7 +55,7 @@ bool Bishop::isValidMove(Position startPos, Position endPos, const Piece* Target
 
 // Queen
 
-bool Queen::isValidMove(Position startPos, Position endPos, const Piece* TargetPiece) const {
+bool Queen::isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const {
     if (startPos.x == endPos.x && startPos.x == endPos.y) return false;
 
     int dx = std::abs(endPos.x - startPos.x);
@@ -73,7 +73,7 @@ bool Queen::isValidMove(Position startPos, Position endPos, const Piece* TargetP
 
 // King
 
-bool King::isValidMove(Position startPos, Position endPos, const Piece* TargetPiece) const {
+bool King::isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const {
     if (startPos.x == endPos.x && startPos.x == endPos.y) return false;
 
     int dx = std::abs(endPos.x - startPos.x);
@@ -90,7 +90,7 @@ bool King::isValidMove(Position startPos, Position endPos, const Piece* TargetPi
 
 // Pawn
 
-bool Pawn::isValidMove(Position startPos, Position endPos, const Piece* TargetPiece) const {
+bool Pawn::isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const {
     if (startPos.x == endPos.x && startPos.x == endPos.y) return false;
 
     int direction = this->getColor() == Color::WHITE ? 1 : -1;

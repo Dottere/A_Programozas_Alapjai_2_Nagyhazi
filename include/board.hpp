@@ -21,7 +21,7 @@ class Board {
     std::unique_ptr<Piece> board[8][8];
     Color turn = Color::WHITE;
 
-    Position findKing(Color c);
+    Position<> findKing(Color c);
 
     public:
         Board() = default;
@@ -34,7 +34,7 @@ class Board {
          * @param y Behatárolja az oszlopot, y koordináta
          * @return True/Igaz ha rajta van, False/Hamis ha nincs.
         */
-        inline bool isOnBoard(Position pos) const { 
+        inline bool isOnBoard(Position<> pos) const { 
             return (pos.x >= 0 && pos.x <= 7 && pos.y >= 0 && pos.y <= 7); 
         }
 
@@ -44,14 +44,14 @@ class Board {
          * @param y Behatárolja az oszlopot, y koordináta
          * @return Bábu mutató, vagy nullptr ha nem áll ott bábu
          */
-        inline Piece* getPiece(Position pos) {
+        inline Piece* getPiece(Position<> pos) {
             return board[pos.x][pos.y].get();
         }
 
         /** 
          * @copydoc getPiece(int, int)  
         */ 
-        inline const Piece* getPiece(Position pos) const {
+        inline const Piece* getPiece(Position<> pos) const {
             return board[pos.x][pos.y].get();
         }
 
@@ -61,7 +61,7 @@ class Board {
          * @param endPos a végső x és y koordináták.
          * @return True/Igaz, ha mindkettő rajta van, False/Hamis ha nem.
          */
-        inline bool isWithinBounds(Position startPos, Position endPos) const {
+        inline bool isWithinBounds(Position<> startPos, Position<> endPos) const {
             return (isOnBoard(startPos) && isOnBoard(endPos));
         }
         
@@ -73,10 +73,10 @@ class Board {
          * @param y_end A végső y koordináta
          * @return True/Igaz, ha mindkettő rajta van, False/Hamis ha nem.
          */
-        bool isPathClear(Position startPos, Position endPos) const;
+        bool isPathClear(Position<> startPos, Position<> endPos) const;
 
         template <int stepX, int stepY>
-        bool Board::isPathClear(Position startPos, Position endPos) const {
+        bool isPathClear(Position<> startPos, Position<> endPos) const {
             int currX = startPos.x + stepX;
             int currY = startPos.y + stepY;
 
@@ -93,9 +93,9 @@ class Board {
         bool isCheck(Color c);
         bool isCheckMate(Color c);
 
-        bool placePiece(std::unique_ptr<Piece> piece, Position pos);
+        bool placePiece(std::unique_ptr<Piece> piece, Position<> pos);
 
-        Position findStartSquare(char pieceType, bool isWhiteToMove, Position endPos, char fileDisambiguity, char rankDisambiguity);
+        Position<> findStartSquare(char pieceType, bool isWhiteToMove, Position<> endPos, char fileDisambiguity, char rankDisambiguity);
 
         inline bool isWhiteToMove() const {
             return (turn == Color::WHITE);
