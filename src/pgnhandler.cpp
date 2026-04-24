@@ -58,15 +58,8 @@ std::vector<Move> PGNHandler::parseFile(std::string filePath, Board& board) {
         }
 
         // 2. make the move on the board
-        Piece* movedPiece = board.getPiece(currentMove.startPos);
-        Piece*capturedPiece = board.getPiece(currentMove.endPos);
+        board.movePiece(currentMove.startPos, currentMove.endPos);
 
-        board.placePiece(std::unique_ptr<Piece>(movedPiece), currentMove.endPos);
-        board.placePiece(nullptr, currentMove.startPos);
-
-        if (capturedPiece != nullptr) {
-            delete capturedPiece;
-        }
 
         if (currentMove.isCastle) {
             if (currentMove.endPos.x == 6) {
@@ -77,7 +70,7 @@ std::vector<Move> PGNHandler::parseFile(std::string filePath, Board& board) {
             } else {
                 board.placePiece(std::unique_ptr<Piece>(board.getPiece(Position(0, currentMove.startPos.y))), 
                 Position(3, currentMove.startPos.y));
-                
+
                 board.placePiece(nullptr, Position(0, currentMove.startPos.y));
             }
         }
@@ -93,6 +86,8 @@ std::vector<Move> PGNHandler::parseFile(std::string filePath, Board& board) {
 
 std::string generatePGN(const std::vector<Move>& history) {
     std::string PGNString = "";
+
+    // impl tbd
 
     return PGNString;
 }

@@ -95,16 +95,8 @@ bool Board::isCheckMate(Color c) {
                     if (!p->canJump() && !isPathClear(startPos, endPos)) continue;
 
                     Board clonedBoard(*this);
-
-                    Piece* clonedPiece = clonedBoard.getPiece(startPos);
-                    Piece* targetToCapture = clonedBoard.getPiece(endPos);
-
-                    clonedBoard.board[endPos.x][endPos.y] = std::unique_ptr<Piece>(clonedPiece);
-                    clonedBoard.board[startPos.x][startPos.y] = nullptr;
-
-                    if (targetToCapture != nullptr) {
-                        delete targetToCapture;
-                    }
+                    
+                    clonedBoard.movePiece(startPos, endPos);
 
                     if (!clonedBoard.isCheck(c)) {
                         return false;

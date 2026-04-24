@@ -107,6 +107,10 @@ class Board {
 
         void clearBoard();
         bool loadFromFEN(const std::string& fen);
+
+        inline void movePiece(Position<> startPos, Position<> endPos) {
+            board[endPos.x][endPos.y] = std::move(board[startPos.x][startPos.y]);
+        }
 };
 
 #endif
