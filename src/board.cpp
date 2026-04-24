@@ -35,12 +35,10 @@ bool Board::isPathClear(Position startPos, Position endPos) const {
 
 
 
-bool Board::placePiece(Piece* piece, Position pos) {
-    std::unique_ptr<Piece> incoming(piece);
-
+bool Board::placePiece(std::unique_ptr<Piece> piece, Position pos) {
     if (!isOnBoard(pos)) return false;
 
-    board[pos.x][pos.y] = std::move(incoming);
+    board[pos.x][pos.y] = std::move(piece);
     return true;
 }
 
@@ -184,8 +182,8 @@ bool Board::loadFromFEN(const std::string& fen) {
         } else {
             Color color = std::isupper(c) ? Color::WHITE : Color::BLACK;
             char type = std::tolower(c);
-            Piece* p = nullptr;
 
+            Piece* p = nullptr;
             switch (type) {
                 case 'r' : p = new Rook(color); break;
                 case 'n' : p = new Knight(color); break;
@@ -196,7 +194,7 @@ bool Board::loadFromFEN(const std::string& fen) {
             }
 
             if (p != nullptr) {
-                placePiece(p, Position(x,y));
+                placePiece(std::unique_ptr<Piece>(p), Position(x, y));
                 x++;
             }
         }

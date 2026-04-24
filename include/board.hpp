@@ -93,7 +93,7 @@ class Board {
         bool isCheck(Color c);
         bool isCheckMate(Color c);
 
-        bool placePiece(Piece* piece, Position pos);
+        bool placePiece(std::unique_ptr<Piece> piece, Position pos);
 
         Position findStartSquare(char pieceType, bool isWhiteToMove, Position endPos, char fileDisambiguity, char rankDisambiguity);
 
