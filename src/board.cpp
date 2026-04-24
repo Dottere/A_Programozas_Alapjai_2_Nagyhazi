@@ -17,18 +17,23 @@ bool Board::isPathClear(Position startPos, Position endPos) const {
     int stepX = (endPos.x > startPos.x) ? 1 : ((endPos.x < startPos.x) ? -1 : 0);
     int stepY = (endPos.y > startPos.y) ? 1 : ((endPos.y < startPos.y) ? -1 : 0);
 
-    int currX = startPos.x + stepX;
-    int currY = startPos.y + stepY;
-
-    while (currX != endPos.x || currY != endPos.y) {
-        if (board[currX][currY] != nullptr) {
-            return false;
-        }
-        currX += stepX;
-        currY += stepY;
+    if (stepX == 1) {
+        if (stepY == 0)  return isPathClear<1, 0>(startPos, endPos);  // Right
+        if (stepY == 1)  return isPathClear<1, 1>(startPos, endPos);  // Up-Right
+        if (stepY == -1) return isPathClear<1, -1>(startPos, endPos); // Down-Right
+    } else if (stepX == -1) {
+        if (stepY == 0)  return isPathClear<-1, 0>(startPos, endPos); // Left
+        if (stepY == 1)  return isPathClear<-1, 1>(startPos, endPos); // Up-Left
+        if (stepY == -1) return isPathClear<-1, -1>(startPos, endPos);// Down-Left
+    } else if (stepX == 0) {
+        if (stepY == 1)  return isPathClear<0, 1>(startPos, endPos);  // Up
+        if (stepY == -1) return isPathClear<0, -1>(startPos, endPos); // Down
     }
-    return true;
+
+    return true; 
 }
+
+
 
 bool Board::placePiece(Piece* piece, Position pos) {
     std::unique_ptr<Piece> incoming(piece);

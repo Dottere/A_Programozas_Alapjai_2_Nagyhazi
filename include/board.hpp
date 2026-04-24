@@ -75,6 +75,21 @@ class Board {
          */
         bool isPathClear(Position startPos, Position endPos) const;
 
+        template <int stepX, int stepY>
+        bool Board::isPathClear(Position startPos, Position endPos) const {
+            int currX = startPos.x + stepX;
+            int currY = startPos.y + stepY;
+
+            while (currX != endPos.x || currY != endPos.y) {
+                if (getPiece(Position(currX, currY))) {
+                    return false;
+                }
+                currX += stepX;
+                currY += stepY;
+            }
+            return true;
+        }
+
         bool isCheck(Color c);
         bool isCheckMate(Color c);
 
