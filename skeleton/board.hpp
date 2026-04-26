@@ -27,11 +27,12 @@ public:
     void movePiece(Position<> startPos, Position<> endPos);
     void clearBoard();
 
-    // --- Lépés validáció adapter ---
+    // --- Lépés validáció ---
 
     bool isPathClear(Position<> startPos, Position<> endPos) const;
 
-    // --- Lépés validáció sablonja, amikor ismert a dx, dy. Sokkal gyorsabb így a program. ---
+    // --- Lépés validáció sablonja, amikor ismert a dx, dy. Sokkal gyorsabb így a program. 
+    //     Valójában ezt hívja meg a sima isPathClear ---
 
     template <int stepX, int stepY>
     bool isPathClear(Position<> startPos, Position<> endPos) const {

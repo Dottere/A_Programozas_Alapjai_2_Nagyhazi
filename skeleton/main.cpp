@@ -11,7 +11,7 @@ int main(void) {
 
     GameMaster gamemaster(board, renderer);
 
-    // Kezdőállapot betöltése FEN alapján
+    // --- Kezdőállapot betöltése FEN alapján ---
     std::string startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     
     if (board.loadFromFEN(startFEN)) {
@@ -20,7 +20,7 @@ int main(void) {
         std::cerr << "Hiba a FEN betoltese soran!\n";
     }
 
-    // Bábu osztály tesztelése
+    // --- Bábu osztály tesztelése ---
     Position<> e2(6, 4);
     board.placePiece(std::make_unique<Pawn>(Color::WHITE), e2);
 
