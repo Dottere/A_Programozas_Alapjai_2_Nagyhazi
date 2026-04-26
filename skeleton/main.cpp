@@ -3,6 +3,7 @@
 #include "renderer.hpp"
 #include "board.hpp"
 #include "gamemaster.hpp"
+#include "piece.hpp"
 
 int main(void) {   
     Board board;
@@ -18,6 +19,12 @@ int main(void) {
     } else {
         std::cerr << "Hiba a FEN betoltese soran!\n";
     }
+
+    // Bábu osztály tesztelése
+    Position<> e2(6, 4);
+    board.placePiece(std::make_unique<Pawn>(Color::WHITE), e2);
+
+    gamemaster.processMove(Position<>(6, 4), Position<>(4, 4));
 
     gamemaster.gameLoop();
 

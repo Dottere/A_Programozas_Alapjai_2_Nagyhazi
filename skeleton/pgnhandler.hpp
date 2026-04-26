@@ -9,11 +9,13 @@
 
 class PGNHandler {
 
-    Move sanToMoveObj(std::string sanMove, Board& board, bool isWhiteToMove);
-
     public:
+        // Beolvas egy fájlból, és Move struktúrákat csinál a PGN-ből
+
         std::vector<Move> parseFile(std::string filePath, Board& board);
 
+        // PGN-t csinál a játékban történt lépésekből (Move struktúrákból)
+        
         std::string generatePGN(const std::vector<Move>& history);
 };
 

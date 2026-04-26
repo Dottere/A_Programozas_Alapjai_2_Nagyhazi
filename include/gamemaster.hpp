@@ -4,7 +4,10 @@
 #include "board.hpp"
 #include "renderer.hpp"
 #include "piece.hpp"
+
 #include <vector>
+#include <string>
+#include <iostream>
 
 struct Move {
 
