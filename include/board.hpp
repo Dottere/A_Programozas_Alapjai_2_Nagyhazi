@@ -28,6 +28,8 @@ class Board {
         Board(const Board& b);
         ~Board() = default;
 
+        bool initialSetup();
+
         /** 
          * @brief Megmondja, hogy a megadott koordináta rajta van-e a táblán.
          * @param x Behatárolja a sort, x koordináta

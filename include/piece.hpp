@@ -195,7 +195,7 @@ class King : public Piece {
 class Pawn : public Piece {
     public:
         Pawn(Color color) : Piece(color) {
-            symbol = (color == Color::WHITE) ? "\u2659" : "\u265F";
+            symbol = (color == Color::WHITE) ? "\u2659" : "\u265F"; // \u2659
             pieceType = 'P';
         }
 

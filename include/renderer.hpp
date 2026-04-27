@@ -7,7 +7,6 @@
 */
 
 #include "board.hpp"
-#include <iostream>
 
 class Renderer {
     const Board& board;

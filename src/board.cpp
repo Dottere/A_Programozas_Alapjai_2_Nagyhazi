@@ -13,6 +13,18 @@ Board::Board(const Board& b) {
     }
 }
 
+bool Board::initialSetup() {
+    std::string startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+            if (loadFromFEN(startFEN)) {
+                std::cout << "Kezdoallapot sikeresen betoltve!\n\n";
+                return true;
+            } else {
+                std::cerr << "Hiba a FEN betoltese soran!\n";
+                return false;
+            }
+}
+
 bool Board::isPathClear(Position<> startPos, Position<> endPos) const {
     int stepX = (endPos.x > startPos.x) ? 1 : ((endPos.x < startPos.x) ? -1 : 0);
     int stepY = (endPos.y > startPos.y) ? 1 : ((endPos.y < startPos.y) ? -1 : 0);
