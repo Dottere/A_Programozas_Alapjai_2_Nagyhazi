@@ -1,5 +1,6 @@
 #include "piece.hpp"
 
+#include "board.hpp"
 #include <cmath>
 
 // Rook
@@ -21,7 +22,7 @@ bool Rook::isValidMove(Position<> startPos, Position<> endPos, const Piece* Targ
 // Knight
 
 bool Knight::isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const {
-    if (startPos.x == endPos.x && startPos.x == endPos.y) return false;
+    if (startPos.x == endPos.x && startPos.y == endPos.y) return false;
 
     int dx = std::abs(endPos.x - startPos.x);
     int dy = std::abs(endPos.y - startPos.y);
@@ -39,7 +40,7 @@ bool Knight::isValidMove(Position<> startPos, Position<> endPos, const Piece* Ta
 // Bishop
 
 bool Bishop::isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const {
-    if (startPos.x == endPos.x && startPos.x == endPos.y) return false;
+    if (startPos.x == endPos.x && startPos.y == endPos.y) return false;
 
     int dx = std::abs(endPos.x - startPos.x);
     int dy = std::abs(endPos.y - startPos.y);
@@ -56,7 +57,7 @@ bool Bishop::isValidMove(Position<> startPos, Position<> endPos, const Piece* Ta
 // Queen
 
 bool Queen::isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const {
-    if (startPos.x == endPos.x && startPos.x == endPos.y) return false;
+    if (startPos.x == endPos.x && startPos.y == endPos.y) return false;
 
     int dx = std::abs(endPos.x - startPos.x);
     int dy = std::abs(endPos.y - startPos.y);
@@ -74,7 +75,7 @@ bool Queen::isValidMove(Position<> startPos, Position<> endPos, const Piece* Tar
 // King
 
 bool King::isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const {
-    if (startPos.x == endPos.x && startPos.x == endPos.y) return false;
+    if (startPos.x == endPos.x && startPos.y == endPos.y) return false;
 
     int dx = std::abs(endPos.x - startPos.x);
     int dy = std::abs(endPos.y - startPos.y);
@@ -91,7 +92,7 @@ bool King::isValidMove(Position<> startPos, Position<> endPos, const Piece* Targ
 // Pawn
 
 bool Pawn::isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const {
-    if (startPos.x == endPos.x && startPos.x == endPos.y) return false;
+    if (startPos.x == endPos.x && startPos.y == endPos.y) return false;
 
     int direction = this->getColor() == Color::WHITE ? 1 : -1;
     
@@ -99,17 +100,16 @@ bool Pawn::isValidMove(Position<> startPos, Position<> endPos, const Piece* Targ
     int dy = endPos.y - startPos.y;
 
     if (dx == 0) {
-        if (TargetPiece != nullptr) return false;
+        if (TargetPiece) return false;
         if (!(dy == direction || (dy == 2 * direction && !this->getHasMoved()))) return false;
-    }
 
-    if (dx == 1) {
+    } else if (dx == 1) {
         if (dy != direction) return false;
+
         if (TargetPiece == nullptr) return false;
         if (TargetPiece->getColor() == this->getColor()) return false;
-    }
 
-    if (dx > 1) return false;
+    } else if (dx > 1) return false;
 
     return true;
 }

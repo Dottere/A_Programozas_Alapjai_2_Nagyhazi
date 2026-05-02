@@ -6,7 +6,6 @@
 */
 
 #include <string>
-
 /**
  * @brief Egy szimpla enum amely nevesíti a bábuk színeit.
  */
@@ -30,6 +29,9 @@ struct Position{
         return x == other.x && y == other.y;
     }
 };
+
+// forward declaration
+class Board;
 
 /**
  * @brief A bábu alaposztály melyet kiterjeszt az összes többi bábu.
