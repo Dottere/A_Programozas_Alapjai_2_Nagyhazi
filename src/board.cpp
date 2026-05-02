@@ -17,10 +17,10 @@ bool Board::initialSetup() {
     std::string startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
             if (loadFromFEN(startFEN)) {
-                std::cout << "Kezdoallapot sikeresen betoltve!\n\n";
+                std::cout << "Kezdőállapot sikeresen betöltve!\n\n";
                 return true;
             } else {
-                std::cerr << "Hiba a FEN betoltese soran!\n";
+                std::cerr << "Hiba a FEN betöltése során!\n";
                 return false;
             }
 }
@@ -129,7 +129,7 @@ Position<> Board::findStartSquare(char pieceType, bool isWhiteToMove, Position<>
             Position<> currentPos(x, y);
             Piece* p = getPiece(currentPos);
 
-            if (p != nullptr && p->getPieceType() == pieceType && p->isWhite() == isWhiteToMove) {
+            if (p && p->getPieceType() == pieceType && p->isWhite() == isWhiteToMove) {
 
                 if (fileDisambiguation != '\0' && (x + 'a') != fileDisambiguation) continue;
                 if (rankDisambiguation != '\0' && (y + '1') != rankDisambiguation) continue;

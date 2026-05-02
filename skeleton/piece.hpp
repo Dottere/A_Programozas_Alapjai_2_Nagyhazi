@@ -36,13 +36,16 @@ public:
     virtual ~Piece() = default;
 
     // Dummy implementáció
+
     inline bool isKing() const { return false; }
 
     // Tisztán virtuális függvény amit felülírnak a bábuk, polimorfizmus
+
     virtual bool isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const = 0;
     virtual Piece* clone() const = 0;
 
-    // --- Getterek és Setterek (Dummy törzsekkel) ---
+    // --- Getterek és Setterek ---
+    
     inline Color getColor() const { return Color::NONE; }
     
     inline bool getHasMoved() const { return false; }
