@@ -3,6 +3,7 @@
 #include <cmath>
 #include <vector>
 #include <iostream> 
+#include <sstream>
 
 Board::Board(const Board& b) {
     for (int i = 0; i < 8; i++){
@@ -165,19 +166,19 @@ void Board::clearBoard() {
 
 bool Board::loadFromFEN(const std::string& fen) {
     clearBoard();
+    std::stringstream ss(fen);
+
+    std::string placement, activeColor, castling, enPassant;
+    int halfMoveClock = 0, fullMoveNumber = 1;
+
+    // Mivel a FEN-ben szóközökkel vannak elválasztva a releváns blokkok ezért a stringstream használata megkönnyíti a feldolgozást
+    ss >> placement >> activeColor >> castling >> enPassant >> halfMoveClock >> fullMoveNumber;
 
     int x = 0;
     int y = 7;
-    size_t i = 0;
 
-    for (; i < fen.length(); i++) {
-        char c = fen[i];
-
-        if (c == ' ') {
-            i++;
-            break;
-        }
-
+    // Bábuk elhelyezése
+    for (char c : placement) {
         if (c == '/') {
             y--;
             x = 0;
@@ -186,8 +187,8 @@ bool Board::loadFromFEN(const std::string& fen) {
         } else {
             Color color = std::isupper(c) ? Color::WHITE : Color::BLACK;
             char type = std::tolower(c);
-
             Piece* p = nullptr;
+            
             switch (type) {
                 case 'r' : p = new Rook(color); break;
                 case 'n' : p = new Knight(color); break;
@@ -202,10 +203,12 @@ bool Board::loadFromFEN(const std::string& fen) {
                 x++;
             }
         }
-    }
 
-    if (i < fen.length()) {
-        turn = (fen[i] == 'w') ? Color::WHITE : Color::BLACK;
+    }
+    
+    // Soron következő játékos beállítása
+    if (!activeColor.empty()) {
+        turn = (activeColor[0] == 'w') ? Color::WHITE : Color::BLACK;
     }
     // TO IMPL: 
     // 1. en passant from FEN
