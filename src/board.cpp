@@ -4,6 +4,7 @@
 #include <vector>
 #include <iostream> 
 #include <sstream>
+#include <cctype>
 
 Board::Board(const Board& b) {
     for (int i = 0; i < 8; i++){
@@ -162,6 +163,15 @@ void Board::clearBoard() {
             board[x][y].reset();
         }
     }
+
+    turn = Color::WHITE;
+    canWhiteCastleKingside = false;
+    canWhiteCastleQueenside = false;
+    canBlackCastleKingside = false;
+    canBlackCastleQueenside = false;
+    enPassantTarget = Position<>{-1, -1};
+    halfMoveClock = 0;
+    fullMoveNumber = 1;
 }
 
 bool Board::loadFromFEN(const std::string& fen) {
@@ -210,10 +220,25 @@ bool Board::loadFromFEN(const std::string& fen) {
     if (!activeColor.empty()) {
         turn = (activeColor[0] == 'w') ? Color::WHITE : Color::BLACK;
     }
-    // TO IMPL: 
-    // 1. en passant from FEN
-    // 2. castling from FEN
-    // 3. ...?
+    
+    // Sáncolási jogok
+    if (castling != "-") {
+        for (char c : castling) {
+            switch (c) { 
+                case 'K': canWhiteCastleKingside = true; break;
+                case 'Q': canWhiteCastleQueenside = true; break;
+                case 'k': canBlackCastleKingside = true; break;
+                case 'q': canBlackCastleQueenside = true; break;
+            }
+        }
+    }
+
+    // En Passant
+    if (enPassant != "-" && enPassant.length() == 2) {
+        int epX = enPassant[0] - 'a';
+        int epY = enPassant[1] - '1';
+        enPassantTarget = Position<>{epX, epY};
+    }
 
     return true;
 }

@@ -21,6 +21,16 @@ class Board {
     std::unique_ptr<Piece> board[8][8];
     Color turn = Color::WHITE;
 
+    bool canWhiteCastleKingside = false;
+    bool canWhiteCastleQueenside = false;
+    bool canBlackCastleKingside = false;
+    bool canBlackCastleQueenside = false;
+
+    Position<> enPassantTarget{-1, -1};
+
+    int halfMoveClock = 0; // 50 lépéses szabály
+    int fullMoveNumber = 1; // Teljes lépésszám
+
     Position<> findKing(Color c);
 
     public:
