@@ -1,7 +1,7 @@
 #ifndef BOARD_HPP
 #define BOARD_HPP
 
-#include "piece.hpp"
+#include "chesstypes.hpp"
 
 #include <memory>
 
@@ -9,6 +9,9 @@
 * Ez a fejlécfájl lesz felelős a tábla kezeléséért, a bábuk reprezentációjáért. A tábla önmagában egy 8x8-as tömb,
 * amely Bábu mutatókat tartalmaz. Ezen felül felelős lesz a PGN értelmezéséért.
 */
+
+// Előre deklaráció
+class Piece;
 
 /**
 * @brief Ez az osztály felelős a tábla állapotáért és a lépések validálásáért.

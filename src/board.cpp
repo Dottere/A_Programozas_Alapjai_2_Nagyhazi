@@ -1,5 +1,7 @@
 #include "board.hpp"
 
+#include "piece.hpp"
+
 #include <cmath>
 #include <vector>
 #include <iostream> 

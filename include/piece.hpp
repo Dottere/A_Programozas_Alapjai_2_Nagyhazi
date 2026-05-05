@@ -5,30 +5,9 @@
 * Ez a fejlécfájl lesz felelős a bábu ősosztály és az abból származtatott összes többi bábu megvalósításával.
 */
 
+#include "chesstypes.hpp"
 #include <string>
-/**
- * @brief Egy szimpla enum amely nevesíti a bábuk színeit.
- */
-enum class Color {
-    WHITE,
-    BLACK,
-    NONE
-};
 
-/**
- * @brief Az olvashatóság és egyszerűség kedvéért egy az x és y koordinátákat egyesítő struktúra
- */
-template <typename T = int>
-struct Position{
-    T x, y;
-
-    Position(T x, T y) : x(x), y(y) {;}
-
-    template <typename U>
-    bool operator==(const Position<U>& other) const {
-        return x == other.x && y == other.y;
-    }
-};
 
 // forward declaration
 class Board;
@@ -45,14 +24,13 @@ class Piece {
 
     protected: 
         std::string symbol;
-        bool isKingFlag = false;
         char pieceType;
 
     public:
         Piece(Color color) : PieceColor(color) {;}
         virtual ~Piece() = default;
 
-        bool isKing() { return isKingFlag; }
+        bool isKing() { return pieceType == 'K'; }
 
         /**
          * @brief Megmondja, hogy az adott mezőre lépés lehetséges-e.
@@ -183,7 +161,6 @@ class King : public Piece {
     public:
         King(Color color) : Piece(color) {
             symbol = (color == Color::WHITE) ? "\u2654" : "\u265A";
-            isKingFlag = true;
             pieceType = 'K';
         }
 

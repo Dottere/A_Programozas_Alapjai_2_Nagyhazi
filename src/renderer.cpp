@@ -1,5 +1,7 @@
 #include "renderer.hpp"
 
+#include "piece.hpp"
+
 #include <iostream>
 
 void Renderer::display() {
