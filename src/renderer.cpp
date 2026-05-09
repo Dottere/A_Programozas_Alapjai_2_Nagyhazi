@@ -12,19 +12,26 @@ void Renderer::display() {
     const std::string BG_WHITE = "\033[47m"; // Light Grey Background (Light Squares)
     const std::string BG_DARK   = "\033[42m"; // Green Background (Dark Squares)
 
+    bool isWhitePOV = (board.getTurn() == Color::WHITE);
+
     // header
     std::cout << "  ";
-    for (int x = 0; x < 8; x++) {
+    for (int col = 0; col < 8; col++) {
+        int x = isWhitePOV ? col : 7 - col; // Flip files for Black
         std::cout << (char)('A'+x) << " ";
     }
     std::cout << std::endl;
 
-    for (int y = 7; y >= 0; y--) { 
-        for (int x = 0; x < 8; x++) {
-            const Piece* p = board.getPiece(Position<>(x, y));
+    for (int row = 7; row >= 0; row--) { 
+        int y = isWhitePOV ? row : 7 - row; 
 
-            // left border
-            if (x == 0) std::cout << y+1 << " ";
+        // left border
+        std::cout << y + 1 << " ";
+
+        for (int col = 0; col < 8; col++) {
+            int x = isWhitePOV ? col : 7 - col; // Flip files for Black
+
+            const Piece* p = board.getPiece(Position<>(x, y));
 
             if ((x + y) % 2 != 0) { 
                 std::cout << BG_WHITE; 
@@ -40,39 +47,36 @@ void Renderer::display() {
             } else {
                 std::cout << "  " << RESET; 
             }
-
-            // "UI" elements
-            if (x == 7) {
-                // right border
-                std::cout << " " << y+1;
-
-                std::string padding = "     ";
-
-                if (y == 7) std::cout << padding << "Turn: " << board.getTurn();
-                else if (y == 5) {
-                    std::cout << "     Captured White: ";
-                    for (const auto& p : board.getWhiteCaptured()) {
-                        if (p) std::cout << P1_COLOR << p->getSymbol() << " " << RESET;
-                    }
-                }
-                else if (y == 3) {
-                    std::cout << "     Captured Black: ";
-                    for (const auto& p : board.getBlackCaptured()) {
-                        if (p) std::cout << P2_COLOR << p->getSymbol() << " " << RESET;
-                    }
-                }
-                
-            }
-
         }
+
+        std::cout << " " << y + 1;
+
+        // UI
+        std::string padding = "     ";
+
+        if (row == 7) std::cout << padding << "Turn: " << board.getTurn();
+        else if (row == 5) {
+            std::cout << padding << "Captured White: ";
+            for (const auto& p : board.getWhiteCaptured()) {
+                if (p) std::cout << P1_COLOR << p->getSymbol() << " " << RESET;
+            }
+        }
+        else if (row == 3) {
+            std::cout << padding << "Captured Black: ";
+            for (const auto& p : board.getBlackCaptured()) {
+                if (p) std::cout << P2_COLOR << p->getSymbol() << " " << RESET;
+            }
+        }
+
         std::cout << std::endl;
     }
+    
+    // footer
+    std::cout << "  ";
+    for (int col = 0; col < 8; col++) {
+        int x = isWhitePOV ? col : 7 - col; // Flip files for Black
+        std::cout << (char)('A'+x) << " ";
+    }
 
-        // footer
-        std::cout << "  ";
-        for (int x = 0; x < 8; x++) {
-            std::cout << (char)('A'+x) << " ";
-        }
-
-        std::cout << std::endl;
-}
+    std::cout << std::endl;
+} 
