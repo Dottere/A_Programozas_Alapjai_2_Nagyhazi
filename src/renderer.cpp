@@ -41,8 +41,29 @@ void Renderer::display() {
                 std::cout << "  " << RESET; 
             }
 
-            // right border
-            if (x == 7) std::cout << " " << y+1;
+            // "UI" elements
+            if (x == 7) {
+                // right border
+                std::cout << " " << y+1;
+
+                std::string padding = "     ";
+
+                if (y == 7) std::cout << padding << "Turn: " << board.getTurn();
+                else if (y == 5) {
+                    std::cout << "     Captured White: ";
+                    for (const auto& p : board.getWhiteCaptured()) {
+                        if (p) std::cout << P1_COLOR << p->getSymbol() << " " << RESET;
+                    }
+                }
+                else if (y == 3) {
+                    std::cout << "     Captured Black: ";
+                    for (const auto& p : board.getBlackCaptured()) {
+                        if (p) std::cout << P2_COLOR << p->getSymbol() << " " << RESET;
+                    }
+                }
+                
+            }
+
         }
         std::cout << std::endl;
     }

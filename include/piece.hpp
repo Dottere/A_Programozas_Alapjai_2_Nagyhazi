@@ -7,6 +7,7 @@
 
 #include "chesstypes.hpp"
 #include <string>
+#include <memory>
 
 
 // forward declaration
@@ -30,7 +31,7 @@ class Piece {
         Piece(Color color) : PieceColor(color) {;}
         virtual ~Piece() = default;
 
-        bool isKing() { return pieceType == 'K'; }
+        bool isKing() const { return pieceType == 'K'; }
 
         /**
          * @brief Megmondja, hogy az adott mezőre lépés lehetséges-e.
@@ -48,7 +49,7 @@ class Piece {
          * @return True/Igaz ha a bábu szabályainak megfelelnek a paraméterek, ellenben False/Hamis
         */
         virtual bool isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const = 0;
-        virtual Piece* clone() const = 0;
+        inline virtual std::unique_ptr<Piece> clone() const = 0;
 
         /**
          * @brief Visszaadja a bábu színét
@@ -106,8 +107,8 @@ class Rook : public Piece {
         */ 
         bool isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const override;
 
-        Piece* clone() const override {
-            return new Rook(*this);
+        inline std::unique_ptr<Piece> clone() const override {
+            return std::make_unique<Rook>(*this);
         }
 };
 
@@ -120,8 +121,8 @@ class Knight : public Piece {
 
         bool isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const override;
 
-        Piece* clone() const override {
-            return new Knight(*this);
+        inline std::unique_ptr<Piece> clone() const override {
+            return std::make_unique<Knight>(*this);
         }
 
         inline bool canJump() const override {
@@ -138,8 +139,8 @@ class Bishop : public Piece {
 
         bool isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const override;
 
-        Piece* clone() const override {
-            return new Bishop(*this);
+        inline std::unique_ptr<Piece> clone() const override {
+            return std::make_unique<Bishop>(*this);
         }
 };
 
@@ -152,8 +153,8 @@ class Queen : public Piece {
 
         bool isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const override;
 
-        Piece* clone() const override {
-            return new Queen(*this);
+        inline std::unique_ptr<Piece> clone() const override {
+            return std::make_unique<Queen>(*this);
         }
 };
 
@@ -166,8 +167,8 @@ class King : public Piece {
 
         bool isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const override;
 
-        Piece* clone() const override {
-            return new King(*this);
+        inline std::unique_ptr<Piece> clone() const override {
+            return std::make_unique<King>(*this);
         }
 };
 
@@ -180,8 +181,8 @@ class Pawn : public Piece {
 
         bool isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const override;
         
-        Piece* clone() const override {
-            return new Pawn(*this);
+        inline std::unique_ptr<Piece> clone() const override {
+            return std::make_unique<Pawn>(*this);
         }
 };
 

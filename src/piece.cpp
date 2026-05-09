@@ -80,13 +80,24 @@ bool King::isValidMove(Position<> startPos, Position<> endPos, const Piece* Targ
     int dx = std::abs(endPos.x - startPos.x);
     int dy = std::abs(endPos.y - startPos.y);
 
-    if (dx > 1 || dy > 1) return false;
 
-    if (TargetPiece != nullptr) {
-        if (TargetPiece->getColor() == this->getColor()) return false;
+    if (dx <= 1 && dy <= 1) {
+        if (TargetPiece != nullptr) {
+            if (TargetPiece->getColor() == this->getColor()) return false;
+        }
+        return true;
     }
 
-    return true;
+    // castling
+    if (dy == 0 && dx == 2) {
+        if (this->getHasMoved()) return false;
+        
+        if (TargetPiece) return false;
+
+        return true;
+    }
+
+    return false;
 }
 
 // Pawn

@@ -11,16 +11,32 @@
 Board::Board(const Board& b) {
     for (int i = 0; i < 8; i++){
         for (int j = 0; j < 8; j++) {
-            if (b.board[i][j])
-                board[i][j] = std::unique_ptr<Piece>(board[i][j]->clone());
+            if (b.board[i][j]) {
+                this->board[i][j] = std::move(b.board[i][j]->clone());
+            } else {
+                this->board[i][j] = nullptr;
+            }
         }
     }
+
+    this->turn = b.turn;
+
+    this->whiteCaptured.clear();
+    this->blackCaptured.clear();
+
+    this->canWhiteCastleKingside = b.canWhiteCastleKingside;
+    this->canWhiteCastleQueenside = b.canWhiteCastleQueenside;
+    this->canBlackCastleKingside = b.canBlackCastleKingside;
+    this->canBlackCastleQueenside = b.canBlackCastleQueenside;
+
+    this->enPassantTarget = b.enPassantTarget;
+
+    this->halfMoveClock = b.halfMoveClock;
+    this->fullMoveNumber = b.fullMoveNumber;
 }
 
-bool Board::initialSetup() {
-    std::string startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-
-            if (loadFromFEN(startFEN)) {
+bool Board::initialSetup(std::string FENString) {
+            if (loadFromFEN(FENString)) {
                 std::cout << "Kezdőállapot sikeresen betöltve!\n\n";
                 return true;
             } else {
@@ -54,17 +70,21 @@ bool Board::isPathClear(Position<> startPos, Position<> endPos) const {
 bool Board::placePiece(std::unique_ptr<Piece> piece, Position<> pos) {
     if (!isOnBoard(pos)) return false;
 
-    board[pos.x][pos.y] = std::move(piece);
+    // A tömb a bal felső sarokban kezdi az indexelést, míg a sakk szabályai a bal alsó sarokban
+    auto arrayY = 7 - pos.y;
+
+    board[pos.x][arrayY] = std::move(piece);
     return true;
 }
 
 Position<> Board::findKing(Color c) {
-    for (int y = 7; y >= 0; y--) {
+    for (int y = 0; y < 8; y++) {
         for (int x = 0; x < 8; x++) {
-            if (board[x][y] != nullptr) {
-                if (board[x][y]->getColor() == c && board[x][y]->isKing()) {
-                    return Position(x,y);
-                }
+            Position<> pos(x, y);
+            Piece* p = getPiece(pos);
+            
+            if (p != nullptr && p->getColor() == c && p->isKing()) {
+                return pos;
             }
         }
     }
@@ -74,16 +94,20 @@ Position<> Board::findKing(Color c) {
 
 bool Board::isCheck(Color c) {
     Position kingPos = findKing(c);
-    if (kingPos.x == -1) return false;
+    if (!kingPos.isValid()) return false;
 
-    for (int y = 7; y >= 0; y--) {
+    Piece* kingPiece = getPiece(kingPos);
+
+    for (int y = 0; y < 8; y++) {
         for (int x = 0; x < 8; x++) {
+            Position<> attackerPos(x, y);
+            Piece* attacker = getPiece(attackerPos);
 
-            Piece* attacker = board[x][y].get();
-
-            if (attacker != nullptr && attacker->getColor() != c) {
-                if (attacker->getPieceType() == 'N' || isPathClear(Position(x,y), kingPos)) {
-                    return true;
+            if (attacker && attacker->getColor() != c) {
+                if (attacker->isValidMove(attackerPos, kingPos, kingPiece)) {
+                    if (attacker->canJump() || isPathClear(attackerPos, kingPos)) {
+                        return true;
+                    }
                 }
             }
         }
@@ -91,9 +115,7 @@ bool Board::isCheck(Color c) {
     return false;
 }
 
-bool Board::isCheckMate(Color c) {
-    if (!isCheck(c)) return false;
-
+bool Board::hasLegalMoves(Color c) {
     for (int startY = 7; startY >= 0; startY--) {
         for (int startX = 0; startX < 8; startX++) {
             Position startPos(startX, startY);
@@ -106,23 +128,30 @@ bool Board::isCheckMate(Color c) {
                     Position endPos(endX, endY);
                     Piece* target = getPiece(endPos);
 
-                    if (!p->isValidMove(startPos, endPos, target)) continue;
+                    if (target && target->getColor() == c) continue;
 
+                    if (!p->isValidMove(startPos, endPos, target)) continue;
                     if (!p->canJump() && !isPathClear(startPos, endPos)) continue;
 
                     Board clonedBoard(*this);
-                    
                     clonedBoard.movePiece(startPos, endPos);
 
                     if (!clonedBoard.isCheck(c)) {
-                        return false;
+                        return true;
                     }
                 }
             }
         }
     }
+    return false; 
+}
 
-    return true;
+bool Board::isCheckMate(Color c) {
+    return isCheck(c) && !hasLegalMoves(c);
+}
+
+bool Board::isStaleMate(Color c) {
+    return !isCheck(c) && !hasLegalMoves(c);
 }
 
 Position<> Board::findStartSquare(char pieceType, bool isWhiteToMove, Position<> endPos, char fileDisambiguation, char rankDisambiguation) {
@@ -244,3 +273,4 @@ bool Board::loadFromFEN(const std::string& fen) {
 
     return true;
 }
+

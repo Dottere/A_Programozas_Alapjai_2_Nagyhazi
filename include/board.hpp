@@ -3,7 +3,10 @@
 
 #include "chesstypes.hpp"
 
+#include "piece.hpp"
+
 #include <memory>
+#include <vector>
 
 /*
 * Ez a fejlécfájl lesz felelős a tábla kezeléséért, a bábuk reprezentációjáért. A tábla önmagában egy 8x8-as tömb,
@@ -22,6 +25,10 @@ class Piece;
 class Board {
     // A tábla 8x8-as tömbje, mely Bábu osztály mutatókat tartalmaz.
     std::unique_ptr<Piece> board[8][8];
+
+    std::vector< std::unique_ptr<Piece> > whiteCaptured;
+    std::vector< std::unique_ptr<Piece> > blackCaptured;
+
     Color turn = Color::WHITE;
 
     bool canWhiteCastleKingside = false;
@@ -42,6 +49,10 @@ class Board {
         Board(const Board& b);
         ~Board() = default;
 
+        inline const std::vector<std::unique_ptr<Piece>>& getWhiteCaptured() const { return whiteCaptured; }
+        inline const std::vector<std::unique_ptr<Piece>>& getBlackCaptured() const { return blackCaptured; }
+
+
         /**
          * @brief Beállítja a sakk szabályaiban meghatározott kezdőpozíciót
          * 
@@ -52,7 +63,7 @@ class Board {
          * 
          * @return Igaz/True | Hamis/False
          */
-        bool initialSetup();
+        bool initialSetup(std::string FENString);
 
         /** 
          * @brief Megmondja, hogy a megadott koordináta rajta van-e a táblán.
@@ -71,14 +82,19 @@ class Board {
          * @return Bábu mutató, vagy nullptr ha nem áll ott bábu
          */
         inline Piece* getPiece(Position<> pos) {
-            return board[pos.x][pos.y].get();
+            if (!isOnBoard(pos)) return nullptr;
+            auto arrayY = 7 - pos.y; // Koordináta átváltása
+            return board[pos.x][arrayY].get();
         }
 
         /** 
          * @copydoc getPiece(int, int)  
         */ 
         inline const Piece* getPiece(Position<> pos) const {
-            return board[pos.x][pos.y].get();
+            // A tömb kezdeti ponja a bal felső sarok, de a sakkban ez a jobb alsó sarok
+            auto arrayY = 7 - pos.y;
+
+            return board[pos.x][arrayY].get();
         }
 
         /**
@@ -127,6 +143,8 @@ class Board {
          * @return Igaz/True ha sakkban áll a király, Hamis/False ha nem.
          */
         bool isCheck(Color c);
+        
+        bool hasLegalMoves(Color c);
         /**
          * @brief Megmondja, hogy az adott játékos mattot kapott-e
          * 
@@ -137,6 +155,7 @@ class Board {
          * @return Igaz/True ha nem tud el lépni a király, Hamis/False ha mégis.
          */
         bool isCheckMate(Color c);
+        bool isStaleMate(Color c);
         /**
          * @brief Egy függvény ami lehelyez egy bábut egy adott pozícióra
          * 
@@ -186,6 +205,10 @@ egyértelműsítő karaktert, amely lehet sor, oszlop, vagy mindkettő, attól f
             return turn;
         }
 
+        inline void nextTurn() {
+            turn = (turn == Color::WHITE) ? Color::BLACK : Color::WHITE;
+        }
+
         // Teljesen letörli a táblát
         void clearBoard();
         
@@ -204,7 +227,22 @@ egyértelműsítő karaktert, amely lehet sor, oszlop, vagy mindkettő, attól f
         // Hasonlóképp működik mint a placePiece() függvény, viszont ez nem dolgozik explicit bábumutatóval, hanem csak egy kezdő
         // és egy végpozíciót bekérve teszi meg az áthelyezést.
         inline void movePiece(Position<> startPos, Position<> endPos) {
-            board[endPos.x][endPos.y] = std::move(board[startPos.x][startPos.y]);
+            if (!isOnBoard(startPos) || !isOnBoard(endPos)) return;
+
+            int startY = 7 - startPos.y;
+            int endY = 7 - endPos.y;
+
+            if (board[startPos.x][startY] == nullptr) return; 
+
+            if (board[endPos.x][endY]) {
+                if (board[endPos.x][endY]->getColor() == Color::WHITE) {
+                    whiteCaptured.push_back(std::move(board[endPos.x][endY]));
+                } else {
+                    blackCaptured.push_back(std::move(board[endPos.x][endY]));
+                }
+            }
+
+            board[endPos.x][endY] = std::move(board[startPos.x][startY]);
         }
 };
 

@@ -7,48 +7,25 @@
 
 #include <vector>
 #include <string>
-#include <iostream>
 
 
 
 class GameMaster {
-    Board board;
-    Renderer renderer;
+    Board& board;
+    Renderer& renderer;
 
     std::vector<Move> moveHistory;
 
+    bool isValidInput(std::string userInput);
+
 public:
 
-    GameMaster(const Board& board, const Renderer& renderer) : board(board), renderer(renderer) {;}
+    GameMaster(Board& board, Renderer& renderer) : board(board), renderer(renderer) {;}
 
-    inline void gameLoop() {
+    void gameLoop();
 
-        std::string placeholder;
+    bool processMove(Position<> startPos, Position<> endPos);
 
-        while (true) {
-            renderer.display();
-            // 1. take input in some form, maybe pgn, maybe a more intuitive way for the player (more code more annoyance)
-            std::cin >> placeholder;
-            // 2. make into coords
-            // 3. processMove(startPos, endPos)
-            // 4. change turn
-        }
-    }
-
-    inline bool processMove(Position<> startPos, Position<> endPos) {
-        Piece* p = board.getPiece(startPos);
-        if (!p || p->getColor() != board.getTurn()) return false;
-
-        Piece* target = board.getPiece(endPos);
-
-        if (p->isValidMove(startPos, endPos, target)) {
-            if (p->canJump() || board.isPathClear(startPos, endPos)) {
-                // move impl, tbd
-                return true;
-            }
-        }
-        return false;
-    }
 };
 
 #endif

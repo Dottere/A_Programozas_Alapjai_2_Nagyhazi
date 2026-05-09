@@ -1,6 +1,8 @@
 #ifndef CHESSTYPES_HPP
 #define CHESSTYPES_HPP
 
+#include <iostream>
+
 class Piece;
 
 /**
@@ -11,6 +13,7 @@ enum class Color {
     BLACK,
     NONE
 };
+std::ostream& operator<<(std::ostream& os, const Color& c);
 
 /**
  * @brief Az olvashatóság és egyszerűség kedvéért egy az x és y koordinátákat egyesítő struktúra
@@ -19,13 +22,19 @@ template <typename T = int>
 struct Position{
     T x, y;
 
+    Position() : x(0), y(0) {;}
     Position(T x, T y) : x(x), y(y) {;}
 
     template <typename U>
     bool operator==(const Position<U>& other) const {
         return x == other.x && y == other.y;
     }
+
+    inline bool isValid() {
+        return (x == -1 || y == -1) ? false : true;
+    }
 };
+std::ostream& operator<<(std::ostream& os, const Position<>& p);
 
 struct Move {
 
