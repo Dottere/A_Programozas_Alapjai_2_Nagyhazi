@@ -4,7 +4,7 @@ CXXFLAGS = -Wall -std=c++14 -Iinclude
 SRC = $(wildcard src/*.cpp)
 OBJ = $(patsubst src/%.cpp, build/%.o, $(SRC))
 
-TARGET = main
+TARGET = cli-chess
 
 all: $(TARGET)
 
