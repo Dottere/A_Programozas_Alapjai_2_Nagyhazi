@@ -244,6 +244,23 @@ egyértelműsítő karaktert, amely lehet sor, oszlop, vagy mindkettő, attól f
 
             board[endPos.x][endY] = std::move(board[startPos.x][startY]);
         }
+
+        void removePiece(Position<> pos) {
+            if (!isOnBoard(pos)) return;
+                int arrayY = 7 - pos.y;
+    
+            if (board[pos.x][arrayY]) {
+                if (board[pos.x][arrayY]->getColor() == Color::WHITE) {
+                    whiteCaptured.push_back(std::move(board[pos.x][arrayY]));
+                } else {
+                    blackCaptured.push_back(std::move(board[pos.x][arrayY]));
+                }
+            }
+            board[pos.x][arrayY] = nullptr;
+        }
+
+        inline void setEnPassantTarget(Position<> target) {enPassantTarget = target;}
+        inline Position<> getEnPassantTarget() const { return enPassantTarget; }
 };
 
 #endif

@@ -62,8 +62,17 @@ bool GameMaster::processMove(Position<> startPos, Position<> endPos) {
         }
 
         const Piece* target = board.getPiece(endPos);
+        
+        //en passant
+        bool isEnPassant = false;
+        char pType = std::tolower(p->getPieceType());
+        if (pType == 'p' && endPos == board.getEnPassantTarget()) {
+            if (std::abs(startPos.x - endPos.x) == 1) {
+                isEnPassant = true;
+            }
+        }
 
-        if (p->isValidMove(startPos, endPos, target)) {
+        if (isEnPassant || p->isValidMove(startPos, endPos, target)) {
             if (p->canJump() || board.isPathClear(startPos, endPos)) {
 
                 //castling
@@ -116,6 +125,13 @@ bool GameMaster::processMove(Position<> startPos, Position<> endPos) {
                 Board clonedBoard(board);
                 clonedBoard.movePiece(startPos, endPos);
 
+                if (isEnPassant) {
+                    clonedBoard.removePiece(Position<>(endPos.x, startPos.y));
+                }
+
+                clonedBoard.movePiece(startPos, endPos);
+
+
                 if (isCastle) {
                     clonedBoard.movePiece(Position<>(rookStartX, startPos.y), Position<>(rookEndX, startPos.y));
                 }
@@ -124,6 +140,12 @@ bool GameMaster::processMove(Position<> startPos, Position<> endPos) {
                 if (clonedBoard.isCheck(board.getTurn())) {
                     std::cerr << "Illegal move: You cannot move into check!" << std::endl;
                     return false;
+                }
+
+                // real move
+
+                if (isEnPassant) {
+                    board.removePiece(Position<>(endPos.x, startPos.y));
                 }
 
                 board.movePiece(startPos, endPos);
@@ -143,6 +165,18 @@ bool GameMaster::processMove(Position<> startPos, Position<> endPos) {
                         movedRook->setHasMoved();
                     }
                 }
+
+                Position<> nextEnPassantTarget{-1, -1};
+
+                if (pType == 'p') {
+                    if (std::abs(startPos.y - endPos.y) == 2) {
+                        int skippedY = (startPos.y + endPos.y) / 2;
+                        nextEnPassantTarget = Position<>(startPos.x, skippedY);
+                    }
+                }
+
+                board.setEnPassantTarget(nextEnPassantTarget);
+
                 return true;
             }
         }
