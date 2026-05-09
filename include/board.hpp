@@ -123,7 +123,7 @@ class Board {
             int currY = startPos.y + stepY;
 
             while (currX != endPos.x || currY != endPos.y) {
-                if (getPiece(Position(currX, currY))) {
+                if (getPiece(Position<>(currX, currY))) {
                     return false;
                 }
                 currX += stepX;

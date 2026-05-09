@@ -1,8 +1,9 @@
+#include "main.hpp"
+
 #include "renderer.hpp"
 #include "board.hpp"
 #include "gamemaster.hpp"
 
-#include <iostream>
 #include <vector>
 #include <string>
 
@@ -12,7 +13,11 @@ int main(int argc, char* argv[]) {
     std::string fenStr = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
     for (size_t i = 1; i < args.size(); i++) {
-        if (args[i] == "--fen" || args[i] == "-f") {
+        if (args[i] == "--help" || args[i] == "-h") {
+            std::cout << helpString << std::endl;
+            return 0;
+        }
+        else if (args[i] == "--fen" || args[i] == "-f") {
             fenStr = args[++i];
         }
         else {

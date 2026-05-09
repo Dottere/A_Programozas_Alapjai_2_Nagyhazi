@@ -62,15 +62,15 @@ std::vector<Move> PGNHandler::parseFile(std::string filePath, Board& board) {
 
         if (currentMove.isCastle) {
             if (currentMove.endPos.x == 6) {
-                board.placePiece(std::unique_ptr<Piece>(board.getPiece(Position(7, currentMove.startPos.y))), 
-                Position(5, currentMove.startPos.y));
+                board.placePiece(std::unique_ptr<Piece>(board.getPiece(Position<>(7, currentMove.startPos.y))), 
+                Position<>(5, currentMove.startPos.y));
 
-                board.placePiece(nullptr, Position(7, currentMove.startPos.y));
+                board.placePiece(nullptr, Position<>(7, currentMove.startPos.y));
             } else {
-                board.placePiece(std::unique_ptr<Piece>(board.getPiece(Position(0, currentMove.startPos.y))), 
-                Position(3, currentMove.startPos.y));
+                board.placePiece(std::unique_ptr<Piece>(board.getPiece(Position<>(0, currentMove.startPos.y))), 
+                Position<>(3, currentMove.startPos.y));
 
-                board.placePiece(nullptr, Position(0, currentMove.startPos.y));
+                board.placePiece(nullptr, Position<>(0, currentMove.startPos.y));
             }
         }
 
@@ -100,8 +100,8 @@ Move PGNHandler::sanToMoveObj(std::string sanMove, Board& board, bool isWhiteToM
     char movedPiece = 'P';
     char promotedTo = '\0';
 
-    Position startPos{-1,-1};
-    Position endPos{-1,-1};
+    Position<> startPos{-1,-1};
+    Position<> endPos{-1,-1};
     Piece* capturedPiecePtr = nullptr;
 
     if (sanMove.back() == '+' || sanMove.back() == '#') {
@@ -114,12 +114,12 @@ Move PGNHandler::sanToMoveObj(std::string sanMove, Board& board, bool isWhiteToM
         movedPiece = 'K';
         
         int rank = isWhiteToMove ? 0 : 7;
-        startPos = Position(4, rank);
+        startPos = Position<>(4, rank);
 
         if (sanMove == "O-O") {
-            endPos = Position(6, rank); // kingside
+            endPos = Position<>(6, rank); // kingside
         } else {
-            endPos = Position(2, rank); // queenside
+            endPos = Position<>(2, rank); // queenside
         }
 
         return Move(startPos, endPos, isCapture, isCastle, isEnPassant, isCheck, movedPiece, promotedTo, nullptr);
@@ -146,7 +146,7 @@ Move PGNHandler::sanToMoveObj(std::string sanMove, Board& board, bool isWhiteToM
         char file = sanMove[sanMove.length() - 2]; // a-h
         char rank = sanMove[sanMove.length() - 1]; // 1-8
 
-        endPos = Position(file - 'a', rank - '1');
+        endPos = Position<>(file - 'a', rank - '1');
         sanMove.erase(sanMove.length() - 2, 2);
     }
 

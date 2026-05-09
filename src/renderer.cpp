@@ -21,7 +21,7 @@ void Renderer::display() {
 
     for (int y = 7; y >= 0; y--) { 
         for (int x = 0; x < 8; x++) {
-            const Piece* p = board.getPiece(Position(x, y));
+            const Piece* p = board.getPiece(Position<>(x, y));
 
             // left border
             if (x == 0) std::cout << y+1 << " ";

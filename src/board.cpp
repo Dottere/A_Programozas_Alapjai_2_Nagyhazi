@@ -89,11 +89,11 @@ Position<> Board::findKing(Color c) {
         }
     }
 
-    return Position(-1, -1);
+    return Position<>(-1, -1);
 }
 
 bool Board::isCheck(Color c) {
-    Position kingPos = findKing(c);
+    Position<> kingPos = findKing(c);
     if (!kingPos.isValid()) return false;
 
     Piece* kingPiece = getPiece(kingPos);
@@ -118,14 +118,14 @@ bool Board::isCheck(Color c) {
 bool Board::hasLegalMoves(Color c) {
     for (int startY = 7; startY >= 0; startY--) {
         for (int startX = 0; startX < 8; startX++) {
-            Position startPos(startX, startY);
+            Position<> startPos(startX, startY);
             Piece* p = getPiece(startPos);
 
             if (p == nullptr || p->getColor() != c) continue;
 
             for (int endY = 7; endY >= 0; endY--) {
                 for (int endX = 0; endX < 8; endX++) {
-                    Position endPos(endX, endY);
+                    Position<> endPos(endX, endY);
                     Piece* target = getPiece(endPos);
 
                     if (target && target->getColor() == c) continue;
@@ -180,10 +180,10 @@ Position<> Board::findStartSquare(char pieceType, bool isWhiteToMove, Position<>
         return candidates[0];
     } else if (candidates.size() > 1) {
         std::cerr << "Hiba: Nem lehet eldönteni a PGN alapján, hogy melyik a helyes lépés! Lehet, hogy hibás?" << std::endl;
-        return Position{-1, -1};
+        return Position<>{-1, -1};
     } else {
         std::cerr << "Hiba: Nem található olyan bábu, amellyel megtehető ez a lépés!" << std::endl;
-        return Position{-1, -1};
+        return Position<>{-1, -1};
     }
 
 }
@@ -240,7 +240,7 @@ bool Board::loadFromFEN(const std::string& fen) {
             }
 
             if (p != nullptr) {
-                placePiece(std::unique_ptr<Piece>(p), Position(x, y));
+                placePiece(std::unique_ptr<Piece>(p), Position<>(x, y));
                 x++;
             }
         }
