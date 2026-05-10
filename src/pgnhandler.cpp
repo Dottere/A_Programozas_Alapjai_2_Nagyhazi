@@ -83,12 +83,78 @@ std::vector<Move> PGNHandler::parseFile(std::string filePath, Board& board) {
     return parsedMoves;
 }
 
-std::string generatePGN(const std::vector<Move>& history) {
-    std::string PGNString = "";
+std::string PGNHandler::generatePGN(const std::vector<Move>& history) {
+    std::string pgnString = "";
 
-    // impl tbd
+    Board simBoard;
+    simBoard.initialSetup("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    
+    int halfMoveCount = 0;
 
-    return PGNString;
+    for (const auto& m : history) {
+        bool isWhiteToMove = (halfMoveCount % 2 == 0);
+
+        if (isWhiteToMove) {
+            pgnString += std::to_string((halfMoveCount / 2) + 1) + ". ";
+        }
+
+        std::string san = "";
+
+        if (m.isCastle) {
+            san = (m.endPos.x == 6) ? "O-O" : "O-O-O";
+        } 
+        else {
+            if (m.movedPiece != 'P') {
+                san += m.movedPiece;
+                
+                char disambig = getDisambiguation(simBoard, m, isWhiteToMove);
+                if (disambig != '\0') san += disambig;
+                
+            } else if (m.isCapture || m.isEnPassant) {
+                san += (char)('a' + m.startPos.x);
+            }
+
+            if (m.isCapture || m.isEnPassant) {
+                san += "x";
+            }
+
+            san += (char)('a' + m.endPos.x);
+            san += (char)('1' + m.endPos.y);
+
+            if (m.promotedTo != '\0' && m.promotedTo != ' ') {
+                san += "=";
+                san += m.promotedTo;
+            }
+        }
+
+        if (m.isCheckMate) {
+            san += "#";
+        } else if (m.isCheck) {
+            san += "+";
+        }
+
+        pgnString += san + " ";
+        
+        if (m.isEnPassant) {
+             simBoard.removePiece(Position<>(m.endPos.x, m.startPos.y));
+        }
+        
+        simBoard.movePiece(m.startPos, m.endPos);
+        
+        if (m.isCastle) {
+            if (m.endPos.x == 6) { // Kingside
+                simBoard.movePiece(Position<>(7, m.startPos.y), Position<>(5, m.startPos.y));
+            } else { // Queenside
+                simBoard.movePiece(Position<>(0, m.startPos.y), Position<>(3, m.startPos.y));
+            }
+        }
+
+        halfMoveCount++; 
+    }
+
+    if (!pgnString.empty() && pgnString.back() == ' ') pgnString.pop_back();
+
+    return pgnString;
 }
 
 Move PGNHandler::sanToMoveObj(std::string sanMove, Board& board, bool isWhiteToMove) {
@@ -96,6 +162,7 @@ Move PGNHandler::sanToMoveObj(std::string sanMove, Board& board, bool isWhiteToM
     bool isCastle = false;
     bool isEnPassant = false;
     bool isCheck = false;
+    bool isCheckMate = false;
 
     char movedPiece = 'P';
     char promotedTo = '\0';
@@ -104,7 +171,10 @@ Move PGNHandler::sanToMoveObj(std::string sanMove, Board& board, bool isWhiteToM
     Position<> endPos{-1,-1};
     Piece* capturedPiecePtr = nullptr;
 
-    if (sanMove.back() == '+' || sanMove.back() == '#') {
+    if (sanMove.back() == '#') {
+        isCheckMate = true;
+        sanMove.pop_back();
+    } else if (sanMove.back() == '+') {
         isCheck = true;
         sanMove.pop_back();
     }
@@ -122,7 +192,7 @@ Move PGNHandler::sanToMoveObj(std::string sanMove, Board& board, bool isWhiteToM
             endPos = Position<>(2, rank); // queenside
         }
 
-        return Move(startPos, endPos, isCapture, isCastle, isEnPassant, isCheck, movedPiece, promotedTo, nullptr);
+        return Move(startPos, endPos, isCapture, isCastle, isEnPassant, isCheck, isCheckMate, movedPiece, promotedTo, nullptr);
     }
 
     size_t equalPos = sanMove.find('=');
@@ -173,5 +243,40 @@ Move PGNHandler::sanToMoveObj(std::string sanMove, Board& board, bool isWhiteToM
         }
     }
 
-    return Move(startPos, endPos, isCapture, isCastle, isEnPassant, isCheck, movedPiece, promotedTo, capturedPiecePtr);
+    return Move(startPos, endPos, isCapture, isCastle, isEnPassant, isCheck, isCheckMate, movedPiece, promotedTo, capturedPiecePtr);
 }   
+
+char PGNHandler::getDisambiguation(Board& board, const Move& m, bool isWhiteToMove) {
+    if (m.movedPiece == 'P' || m.movedPiece == 'K') return '\0';
+
+    char pieceTypeToFind = isWhiteToMove ? std::toupper(m.movedPiece) : std::tolower(m.movedPiece);
+    bool collisionFound = false;
+    bool shareFile = false;
+
+    for (int x = 0; x < 8; x++) {
+        for (int y = 0; y < 8; y++){
+            Position<> currentPos(x,y);
+
+            if (currentPos == m.startPos) continue;
+
+            Piece* otherPiece = board.getPiece(currentPos);
+
+            if (otherPiece && otherPiece->getPieceType() == pieceTypeToFind) {
+                if (otherPiece->isValidMove(currentPos, m.endPos, board.getPiece(m.endPos))) {
+                    if (otherPiece->canJump() || board.isPathClear(currentPos, m.endPos)) {
+                        collisionFound = true;
+                        if (currentPos.x == m.startPos.x) {
+                            shareFile = true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (!collisionFound) return '\0';
+
+    if (shareFile) return '1' + m.startPos.y;
+
+    return 'a' + m.startPos.x;
+}

@@ -39,7 +39,7 @@ std::ostream& operator<<(std::ostream& os, const Position<>& p);
 struct Move {
 
     Move(Position<> start, Position<> end, bool isCapture, 
-    bool isCastle, bool isEnPassant, bool isCheck,
+    bool isCastle, bool isEnPassant, bool isCheck, bool isCheckMate,
     char movedPiece, char promotedTo, Piece* capturedPiece);
 
     Position<> startPos;
@@ -49,6 +49,7 @@ struct Move {
     bool isCastle;
     bool isEnPassant;
     bool isCheck;
+    bool isCheckMate;
 
     char movedPiece;
     char promotedTo;

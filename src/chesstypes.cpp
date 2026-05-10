@@ -3,7 +3,7 @@
 #include "piece.hpp"
 
 Move::Move(Position<> start, Position<> end, bool isCapture, 
-    bool isCastle, bool isEnPassant, bool isCheck,
+    bool isCastle, bool isEnPassant, bool isCheck, bool isCheckMate,
     char movedPiece, char promotedTo, Piece* capturedPiece) : 
     startPos(start), 
     endPos(end), 
@@ -11,6 +11,7 @@ Move::Move(Position<> start, Position<> end, bool isCapture,
     isCastle(isCastle), 
     isEnPassant(isEnPassant), 
     isCheck(isCheck), 
+    isCheckMate(isCheckMate),
     movedPiece(movedPiece), 
     promotedTo(promotedTo),
     capturedPieceType('\0'),

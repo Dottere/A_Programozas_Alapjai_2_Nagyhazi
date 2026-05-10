@@ -4,6 +4,7 @@
 #include "board.hpp"
 #include "renderer.hpp"
 #include "piece.hpp"
+#include "chesstypes.hpp"
 
 #include <vector>
 #include <string>
@@ -25,6 +26,10 @@ public:
     void gameLoop();
 
     bool processMove(Position<> startPos, Position<> endPos);
+
+    inline std::vector<Move> getMoveHistory() const {
+        return moveHistory;
+    }
 
 };
 

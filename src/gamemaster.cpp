@@ -142,6 +142,19 @@ bool GameMaster::processMove(Position<> startPos, Position<> endPos) {
                     return false;
                 }
 
+                Piece* capturedPiece = nullptr;
+                if (isEnPassant) {
+                    capturedPiece = const_cast<Piece*>(board.getPiece(Position<>(endPos.x, startPos.y)));
+                } else {
+                    capturedPiece = const_cast<Piece*>(target);
+                }
+
+                bool isCapture = (capturedPiece != nullptr);
+                char movedPieceChar = p->getPieceType();
+
+                char promotedTo = '\0';
+
+
                 // real move
 
                 if (isEnPassant) {
@@ -176,6 +189,24 @@ bool GameMaster::processMove(Position<> startPos, Position<> endPos) {
                 }
 
                 board.setEnPassantTarget(nextEnPassantTarget);
+
+                Color opponentColor = (board.getTurn() == Color::WHITE) ? Color::BLACK : Color::WHITE;
+
+                bool isCheckMove = board.isCheck(opponentColor);
+                bool isCheckMateMove = board.isCheckMate(opponentColor);
+
+                moveHistory.emplace_back(
+                    startPos,
+                    endPos,
+                    isCapture,
+                    isCastle,
+                    isEnPassant,
+                    isCheckMove,
+                    isCheckMateMove,
+                    movedPieceChar,
+                    promotedTo,
+                    capturedPiece
+                );
 
                 return true;
             }
