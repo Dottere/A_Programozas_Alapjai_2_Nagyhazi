@@ -87,7 +87,7 @@ std::string PGNHandler::generatePGN(const std::vector<Move>& history) {
     std::string pgnString = "";
 
     Board simBoard;
-    simBoard.initialSetup("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    simBoard.loadFromFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     
     int halfMoveCount = 0;
 

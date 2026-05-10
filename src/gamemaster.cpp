@@ -17,7 +17,7 @@ void GameMaster::gameLoop() {
             Position<> currentMoveStartPos;
             Position<> currentMoveEndPos;
             if (!isValidInput(userInput)) {
-                std::cerr << "Invalid input! Please use e2e4 format!" << std::endl;
+                std::cerr << "Helytelen lépésformátum! Kérlek használd a kezdőmező célmező formátumot (Pl. e2e4)!" << std::endl;
                 continue;
             }
 
@@ -43,11 +43,11 @@ void GameMaster::gameLoop() {
 
             // 6. game over
             if (board.isCheckMate(board.getTurn())) {
-                std::string winner = board.isWhiteToMove() ? "Black" : "White";
-                std::cout << "Checkmate! " << winner << " wins!" << std::endl;
+                std::string winner = board.isWhiteToMove() ? "Fekete" : "Fehér";
+                std::cout << "Sakkmatt! " << winner << " nyert!" << std::endl;
                 break;
             } else if (board.isStaleMate(board.getTurn())) {
-                std::cout << "Stalemate! The game is a draw." << std::endl;
+                std::cout << "Patt! A játék döntetlen." << std::endl;
                 break;
             }
         }
@@ -57,7 +57,7 @@ bool GameMaster::processMove(Position<> startPos, Position<> endPos) {
         const Piece* p = board.getPiece(startPos);
         
         if (!p || p->getColor() != board.getTurn()) {
-            std::cerr << "Illegal move: It's not your turn!" << std::endl;
+            std::cerr << "Helytelen lépés: Nem te vagy soron." << std::endl;
             return false;
         }
 
@@ -83,7 +83,7 @@ bool GameMaster::processMove(Position<> startPos, Position<> endPos) {
                 if (isCastle) {
                     // Nem lehet sakkból kilépni sáncolással
                     if (board.isCheck(board.getTurn())) {
-                        std::cerr << "Illegal move: You cannot castle out of check!" << std::endl;
+                        std::cerr << "Helytelen lépés: Nem lehet a sakkot sáncolással megszakítani." << std::endl;
                         return false;
                     }
 
@@ -97,7 +97,7 @@ bool GameMaster::processMove(Position<> startPos, Position<> endPos) {
 
                     // 3. Megnézzük hogy a bástya ott van-e illetve, hogy lépett-e már
                     if (!rook || rook->getColor() != board.getTurn() || rook->getPieceType() != 'R' || rook->getHasMoved()) {
-                        std::cerr << "Illegal move: The rook is missing or has already moved!" << std::endl;
+                        std::cerr << "Helytelen lépés: A bástya nincs a kezdőhelyén, vagy már egyszer elmozdult onnan." << std::endl;
                         return false;
                     }
 
@@ -105,7 +105,7 @@ bool GameMaster::processMove(Position<> startPos, Position<> endPos) {
                     if (!kingside) {
                         Position<> bSquare(1, startPos.y);
                         if (board.getPiece(bSquare) != nullptr) {
-                            std::cerr << "Illegal move: The path between King and Rook is blocked!" << std::endl;
+                            std::cerr << "Helytelen lépés: Nem szabad a király és bástya között az út." << std::endl;
                             return false;
                         }
                     }
@@ -116,7 +116,7 @@ bool GameMaster::processMove(Position<> startPos, Position<> endPos) {
                     passCheckBoard.movePiece(startPos, Position<>(passX, startPos.y));
                     
                     if (passCheckBoard.isCheck(board.getTurn())) {
-                        std::cerr << "Illegal move: You cannot castle through check!" << std::endl;
+                        std::cerr << "Helytelen lépés: Nem sáncolhatsz sakkon keresztül." << std::endl;
                         return false;
                     }
                 }
@@ -138,7 +138,7 @@ bool GameMaster::processMove(Position<> startPos, Position<> endPos) {
                 
 
                 if (clonedBoard.isCheck(board.getTurn())) {
-                    std::cerr << "Illegal move: You cannot move into check!" << std::endl;
+                    std::cerr << "Helytelen lépés: Nem léphetsz sakkba." << std::endl;
                     return false;
                 }
 
@@ -211,7 +211,7 @@ bool GameMaster::processMove(Position<> startPos, Position<> endPos) {
                 return true;
             }
         }
-        std::cerr << "Illegal move: This piece cannot move that way" << std::endl;
+        std::cerr << "Helytelen lépés: Ez a bábu nem tud így lépni." << std::endl;
         return false;
 }
 

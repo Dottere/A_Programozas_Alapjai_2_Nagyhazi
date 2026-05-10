@@ -52,19 +52,6 @@ class Board {
         inline const std::vector<std::unique_ptr<Piece>>& getWhiteCaptured() const { return whiteCaptured; }
         inline const std::vector<std::unique_ptr<Piece>>& getBlackCaptured() const { return blackCaptured; }
 
-
-        /**
-         * @brief Beállítja a sakk szabályaiban meghatározott kezdőpozíciót
-         * 
-         * Használja a loadFromFEN() függvényt, hogy egy előre meghatározott sztringből
-         * betöltse az abba foglalt kezdőpozíciót.
-         * 
-         * @note Ha sikeresen megtörtént a betöltés, akkor std::cout-ra ír visszajelzést, ha nem, akkor std::cerr-re.
-         * 
-         * @return Igaz/True | Hamis/False
-         */
-        bool initialSetup(std::string FENString);
-
         /** 
          * @brief Megmondja, hogy a megadott koordináta rajta van-e a táblán.
          * @param x Behatárolja a sort, x koordináta

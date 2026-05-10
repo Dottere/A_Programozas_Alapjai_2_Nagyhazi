@@ -7,6 +7,7 @@
 #include <iostream> 
 #include <sstream>
 #include <cctype>
+#include <regex>
 
 Board::Board(const Board& b) {
     for (int i = 0; i < 8; i++){
@@ -33,16 +34,6 @@ Board::Board(const Board& b) {
 
     this->halfMoveClock = b.halfMoveClock;
     this->fullMoveNumber = b.fullMoveNumber;
-}
-
-bool Board::initialSetup(std::string FENString) {
-            if (loadFromFEN(FENString)) {
-                std::cout << "Kezdőállapot sikeresen betöltve!\n\n";
-                return true;
-            } else {
-                std::cerr << "Hiba a FEN betöltése során!\n";
-                return false;
-            }
 }
 
 bool Board::isPathClear(Position<> startPos, Position<> endPos) const {
@@ -209,6 +200,11 @@ bool Board::loadFromFEN(const std::string& fen) {
     clearBoard();
     std::stringstream ss(fen);
 
+    std::string fullFENString = ss.str();
+    std::regex fenRegex(R"(^([prnbqkPRNBQK1-8]+(?:/[prnbqkPRNBQK1-8]+){7})\s+([wb])\s+(-|[KQkq]{1,4})\s+(-|[a-h][36])\s+(\d+)\s+([1-9]\d*)$)");
+
+    if (!std::regex_match(fullFENString, fenRegex)) return false;
+
     std::string placement, activeColor, castling, enPassant;
     int halfMoveClock = 0, fullMoveNumber = 1;
 
@@ -220,6 +216,7 @@ bool Board::loadFromFEN(const std::string& fen) {
 
     // Bábuk elhelyezése
     for (char c : placement) {
+
         if (c == '/') {
             y--;
             x = 0;
