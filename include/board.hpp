@@ -234,7 +234,7 @@ egyértelműsítő karaktert, amely lehet sor, oszlop, vagy mindkettő, attól f
 
         void removePiece(Position<> pos) {
             if (!isOnBoard(pos)) return;
-                int arrayY = 7 - pos.y;
+            int arrayY = 7 - pos.y;
     
             if (board[pos.x][arrayY]) {
                 if (board[pos.x][arrayY]->getColor() == Color::WHITE) {
@@ -248,6 +248,23 @@ egyértelműsítő karaktert, amely lehet sor, oszlop, vagy mindkettő, attól f
 
         inline void setEnPassantTarget(Position<> target) {enPassantTarget = target;}
         inline Position<> getEnPassantTarget() const { return enPassantTarget; }
+
+        inline void promotePiece(Position<> pos, char promotedTo, Color pieceColor) {
+            if (!isOnBoard(pos)) return;
+            int arrayY = 7 - pos.y;
+
+            if (!board[pos.x][arrayY]) return;
+
+            if (promotedTo == 'q') {
+                board[pos.x][arrayY] = std::make_unique<Queen>(pieceColor);
+            } else if (promotedTo == 'r') {
+                board[pos.x][arrayY] = std::make_unique<Rook>(pieceColor);
+            } else if (promotedTo == 'b') {
+                board[pos.x][arrayY] = std::make_unique<Bishop>(pieceColor);
+            } else {
+                board[pos.x][arrayY] = std::make_unique<Knight>(pieceColor);
+            }
+        }
 };
 
 #endif

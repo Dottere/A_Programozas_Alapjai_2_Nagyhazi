@@ -1,7 +1,13 @@
 #include "gamemaster.hpp"
 
+#include "pgnhandler.hpp"
+
 #include <iostream>
 #include <regex>
+#include <limits>
+#include <ctime>
+#include <iomanip>
+#include <fstream>
 
 void GameMaster::gameLoop(PGNMetadata& metadata) {
     
@@ -21,17 +27,39 @@ void GameMaster::gameLoop(PGNMetadata& metadata) {
                 continue;
             }
 
-            if (userInput == "o-o") {
+            if (userInput == "o-o" || userInput == "0-0") {
                 userInput = board.isWhiteToMove() ? "e1g1" : "e8g8";
-            } else if (userInput == "o-o-o") {
+            } else if (userInput == "o-o-o" || userInput == "0-0-0") {
                 userInput = board.isWhiteToMove() ? "e1c1" : "e8c8";
             }
 
             currentMoveStartPos = { userInput[0]-'a', userInput[1]-'1' };
             currentMoveEndPos = { userInput[2]-'a', userInput[3]-'1' };
+
+            char promotedTo = '\0';
+
+            const Piece* p = board.getPiece(currentMoveStartPos);
+            if (p && std::tolower(p->getPieceType()) == 'p') {
+                if (currentMoveEndPos.y == 0 || currentMoveEndPos.y == 7) {
+                    if (userInput.length() == 5) {
+                        promotedTo = userInput[4];
+                    }
+                    else {
+                        std::cout << "Mire szeretnéd cserélni a gyalogot? (q/r/b/n): ";
+                        std::cin >> promotedTo;
+                        promotedTo = std::tolower(promotedTo);
+
+                        while (promotedTo != 'q' && promotedTo != 'r' && promotedTo != 'b' && promotedTo != 'n') {
+                            std::cout << "Érvénytelen bábu! Kérlek válassz ezek közül (q/r/b/n): ";
+                            std::cin >> promotedTo;
+                            promotedTo = std::tolower(promotedTo);
+                        }
+                    }
+                }
+            }
             // 3. processMove(startPos, endPos)
 
-            bool moveSuccessful = processMove(currentMoveStartPos, currentMoveEndPos);
+            bool moveSuccessful = processMove(currentMoveStartPos, currentMoveEndPos, promotedTo);
 
             if (!moveSuccessful) {
                 continue;
@@ -55,7 +83,7 @@ void GameMaster::gameLoop(PGNMetadata& metadata) {
         }
 }
 
-bool GameMaster::processMove(Position<> startPos, Position<> endPos) {
+bool GameMaster::processMove(Position<> startPos, Position<> endPos, char promotedTo) {
         const Piece* p = board.getPiece(startPos);
         
         if (!p || p->getColor() != board.getTurn()) {
@@ -154,9 +182,6 @@ bool GameMaster::processMove(Position<> startPos, Position<> endPos) {
                 bool isCapture = (capturedPiece != nullptr);
                 char movedPieceChar = p->getPieceType();
 
-                char promotedTo = '\0';
-
-
                 // real move
 
                 if (isEnPassant) {
@@ -164,6 +189,10 @@ bool GameMaster::processMove(Position<> startPos, Position<> endPos) {
                 }
 
                 board.movePiece(startPos, endPos);
+
+                if (promotedTo != '\0') {
+                    board.promotePiece(endPos, promotedTo, p->getColor());
+                }
 
                 Piece* movedPiece = board.getPiece(endPos);
                     if (movedPiece) {
@@ -219,6 +248,70 @@ bool GameMaster::processMove(Position<> startPos, Position<> endPos) {
 
 // private
 bool GameMaster::isValidInput(std::string userInput) {
-    static const std::regex pattern("^([a-h][1-8][a-h][1-8]|o-o-o|0-0-0|o-o|0-0)$");
+    static const std::regex pattern("^([a-h][1-8][a-h][1-8][qrbn]?|o-o-o|0-0-0|o-o|0-0)$");
     return std::regex_match(userInput, pattern);
+}
+
+void GameMaster::run(const std::string& fenStr) {
+    PGNHandler pgnhandler;
+    PGNMetadata metadata;
+
+    if (fenStr != "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") {
+        metadata.setup = 1;
+        metadata.fen = fenStr;
+    }
+
+    gameLoop(metadata);
+
+    char answer = ' ';
+    std::cout << "Szeretnéd kimenteni a játékot PGN fájlba? (i/n)" << std::endl;
+    while (std::tolower(answer) != 'i' && std::tolower(answer) != 'n') {
+        std::cin >> answer;
+    }
+
+    if (std::tolower(answer) == 'i') {
+        std::cout << "A fájl neve (kiterjesztés nélkül): ";
+        std::string filename;
+        std::cin >> filename;
+
+        std::string line;
+
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        std::cout << "Fehér bábukkal játszó játékos neve: ";
+        std::getline(std::cin, line);
+        metadata.white = line;
+
+        std::cout << "Sötét bábukkal játszó játékos neve: ";
+        std::getline(std::cin, line);
+        metadata.black = line;
+        
+        std::cout << "Az esemény neve: (Helyi esemény)";
+        std::getline(std::cin, line);
+        metadata.event = (line.find_first_not_of(" \r\n\t") != std::string::npos) ? line : "Helyi esemény";
+
+        std::time_t t = std::time(nullptr);
+        std::tm* now = std::localtime(&t);
+        std::stringstream time_ss;
+        time_ss << std::put_time(now, "%Y.%m.%d");
+        metadata.date = time_ss.str();
+
+        std::cout << "Játszott kör sorszáma: (1)";
+        std::getline(std::cin, line);
+        metadata.round = (line.find_first_not_of(" \r\n\t") != std::string::npos) ? line : "1";
+
+        std::cout << "Esemény helyszíne: (Ismeretlen)";
+        std::getline(std::cin, line);
+        metadata.site = (line.find_first_not_of(" \r\n\t") != std::string::npos) ? line : "Ismeretlen";
+    
+
+        std::ofstream outFile(filename + ".pgn");
+        if (outFile.is_open()) {
+            outFile << pgnhandler.generatePGN(metadata, getMoveHistory());
+            outFile.close();
+            std::cout << "A játék sikeresen elmentve a " << filename << ".pgn fájlba!" << std::endl;
+        } else {
+            std::cerr << "Hiba: Nem lehetett megnyitni a fájlt az íráshoz!" << std::endl;
+        }
+    }
+
 }

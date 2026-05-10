@@ -23,9 +23,10 @@ public:
 
     GameMaster(Board& board, Renderer& renderer) : board(board), renderer(renderer) {;}
 
+    void run(const std::string& fenStr);
     void gameLoop(PGNMetadata& metadata);
 
-    bool processMove(Position<> startPos, Position<> endPos);
+    bool processMove(Position<> startPos, Position<> endPos, char promotedTo = '\0');
 
     inline std::vector<Move> getMoveHistory() const {
         return moveHistory;
