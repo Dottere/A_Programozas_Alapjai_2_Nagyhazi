@@ -83,8 +83,21 @@ std::vector<Move> PGNHandler::parseFile(std::string filePath, Board& board) {
     return parsedMoves;
 }
 
-std::string PGNHandler::generatePGN(const std::vector<Move>& history) {
+std::string PGNHandler::generatePGN(const PGNMetadata& metadata, const std::vector<Move>& history) {
     std::string pgnString = "";
+
+    pgnString += "[Event \"" + metadata.event + "\"]\n";
+    pgnString += "[Site \"" + metadata.site + "\"]\n";
+    pgnString += "[Date \"" + metadata.date + "\"]\n";
+    pgnString += "[Round \"" + metadata.round + "\"]\n";
+    pgnString += "[White \"" + metadata.white + "\"]\n";
+    pgnString += "[Black \"" + metadata.black + "\"]\n";
+    pgnString += "[Result \"" + metadata.result + "\"]\n";
+    if (!metadata.fen.empty()) {
+        pgnString += "[SetUp \"1\"]\n";
+        pgnString += "[FEN \"" + metadata.fen + "\"]\n";
+    }
+    pgnString += "\n";
 
     Board simBoard;
     simBoard.loadFromFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
@@ -153,6 +166,8 @@ std::string PGNHandler::generatePGN(const std::vector<Move>& history) {
     }
 
     if (!pgnString.empty() && pgnString.back() == ' ') pgnString.pop_back();
+
+    pgnString += " " + metadata.result + "\n";
 
     return pgnString;
 }

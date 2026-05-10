@@ -3,7 +3,7 @@
 #include <iostream>
 #include <regex>
 
-void GameMaster::gameLoop() {
+void GameMaster::gameLoop(PGNMetadata& metadata) {
     
         std::string userInput;
         renderer.display();
@@ -45,9 +45,11 @@ void GameMaster::gameLoop() {
             if (board.isCheckMate(board.getTurn())) {
                 std::string winner = board.isWhiteToMove() ? "Fekete" : "Fehér";
                 std::cout << "Sakkmatt! " << winner << " nyert!" << std::endl;
+                metadata.result = board.isWhiteToMove() ? "0-1" : "1-0";
                 break;
             } else if (board.isStaleMate(board.getTurn())) {
                 std::cout << "Patt! A játék döntetlen." << std::endl;
+                metadata.result = "1/2-1/2";
                 break;
             }
         }

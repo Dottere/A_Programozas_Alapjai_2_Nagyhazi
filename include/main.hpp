@@ -1,6 +1,7 @@
 #ifndef MAIN_HPP
 #define MAIN_HPP
 
+#include "chesstypes.hpp"
 #include <iostream>
 
 std::string helpString = R"(Usage: cli-chess [OPTIONS]
@@ -13,5 +14,7 @@ Options:
     -p, --pgn <file path>           Loads a game from the provided PGN allowing you to analyze is step by step)";
 
 std::string defaultPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+void populateMetadata(PGNMetadata& metadata);
 
 #endif

@@ -16,7 +16,7 @@ class PGNHandler {
     public:
         std::vector<Move> parseFile(std::string filePath, Board& board);
 
-        std::string generatePGN(const std::vector<Move>& history);
+        std::string generatePGN(const PGNMetadata& metadata, const std::vector<Move>& history);
 };
 
 #endif

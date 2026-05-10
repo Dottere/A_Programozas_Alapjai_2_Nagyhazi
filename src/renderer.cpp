@@ -54,15 +54,15 @@ void Renderer::display() {
         // UI
         std::string padding = "     ";
 
-        if (row == 7) std::cout << padding << "Turn: " << board.getTurn();
+        if (row == 7) std::cout << padding << "Következik: " << ((board.getTurn() == Color::WHITE) ? "Fehér" : "Sötét");
         else if (row == 5) {
-            std::cout << padding << "Captured White: ";
+            std::cout << padding << "Fehér által leütött: ";
             for (const auto& p : board.getWhiteCaptured()) {
                 if (p) std::cout << P1_COLOR << p->getSymbol() << " " << RESET;
             }
         }
         else if (row == 3) {
-            std::cout << padding << "Captured Black: ";
+            std::cout << padding << "Sötét által leütött: ";
             for (const auto& p : board.getBlackCaptured()) {
                 if (p) std::cout << P2_COLOR << p->getSymbol() << " " << RESET;
             }

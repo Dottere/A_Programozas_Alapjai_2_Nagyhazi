@@ -2,6 +2,7 @@
 #define CHESSTYPES_HPP
 
 #include <iostream>
+#include <string>
 
 class Piece;
 
@@ -56,6 +57,18 @@ struct Move {
 
     char capturedPieceType; // 'n', 'p', 'r'... etc
     Color capturedPieceColor;
+};
+
+struct PGNMetadata {
+    std::string event = "?";
+    std::string site = "?";
+    std::string date = "????.??.??";
+    std::string round = "?";
+    std::string white = "?";
+    std::string black = "?";
+    std::string result = "*"; // "*", "1-0", "0-1", or "1/2-1/2"
+    std::string setup = "0";
+    std::string fen = "";
 };
 
 #endif

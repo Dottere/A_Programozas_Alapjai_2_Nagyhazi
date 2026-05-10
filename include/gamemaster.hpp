@@ -23,7 +23,7 @@ public:
 
     GameMaster(Board& board, Renderer& renderer) : board(board), renderer(renderer) {;}
 
-    void gameLoop();
+    void gameLoop(PGNMetadata& metadata);
 
     bool processMove(Position<> startPos, Position<> endPos);
 
