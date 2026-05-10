@@ -2,4 +2,4 @@ build
 cli-chess
 html/
 .vscode
-*.pgn
+test.pgn
