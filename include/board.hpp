@@ -4,9 +4,11 @@
 #include "chesstypes.hpp"
 
 #include "piece.hpp"
+#include "constants.hpp"
 
 #include <memory>
 #include <vector>
+#include <string>
 
 /*
 * Ez a fejlécfájl lesz felelős a tábla kezeléséért, a bábuk reprezentációjáért. A tábla önmagában egy 8x8-as tömb,
@@ -24,7 +26,7 @@ class Piece;
 */
 class Board {
     // A tábla 8x8-as tömbje, mely Bábu osztály mutatókat tartalmaz.
-    std::unique_ptr<Piece> board[8][8];
+    std::unique_ptr<Piece> board[BOARD_SIZE][BOARD_SIZE];
 
     std::vector< std::unique_ptr<Piece> > whiteCaptured;
     std::vector< std::unique_ptr<Piece> > blackCaptured;
@@ -231,6 +233,8 @@ egyértelműsítő karaktert, amely lehet sor, oszlop, vagy mindkettő, attól f
 
             board[endPos.x][endY] = std::move(board[startPos.x][startY]);
         }
+
+        std::string generateFEN() const;
 
         void removePiece(Position<> pos) {
             if (!isOnBoard(pos)) return;

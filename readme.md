@@ -17,7 +17,7 @@ Egy C++ nyelven, objektumorientált paradigmákkal megvalósított parancssoros 
 ## 🚀 Telepítés és Futtatás
 
 * **Előfeltételek:**
-* C++14 fordító (pl. GCC, Clang)
+* C++17 fordító (pl. GCC, Clang)
 * Make (opcionális, ha Makefile-t használsz)
 
 **Fordítás:**

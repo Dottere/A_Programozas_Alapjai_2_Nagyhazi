@@ -9,28 +9,26 @@
 #include <vector>
 #include <string>
 
-
+class PGNHandler;
 
 class GameMaster {
     Board& board;
     Renderer& renderer;
+    PGNHandler& pgnhandler;
 
     std::vector<Move> moveHistory;
 
     bool isValidInput(std::string userInput);
+    void gameLoop(PGNMetadata& metadata);
+    bool processMove(Position<> startPos, Position<> endPos, char promotedTo = '\0');
+    void replayPGN(const std::string& pgnFilePath);
+    void manualPlay(const std::string& fenStr);
 
 public:
 
-    GameMaster(Board& board, Renderer& renderer) : board(board), renderer(renderer) {;}
+    GameMaster(Board& board, Renderer& renderer, PGNHandler& pgnhandler) : board(board), renderer(renderer), pgnhandler(pgnhandler) {}
 
-    void run(const std::string& fenStr);
-    void gameLoop(PGNMetadata& metadata);
-
-    bool processMove(Position<> startPos, Position<> endPos, char promotedTo = '\0');
-
-    inline std::vector<Move> getMoveHistory() const {
-        return moveHistory;
-    }
+    void run(const std::string& fenStr, const std::string& pgnFilePath);
 
 };
 

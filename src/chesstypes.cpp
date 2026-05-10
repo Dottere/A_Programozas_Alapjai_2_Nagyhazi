@@ -23,13 +23,21 @@ Move::Move(Position<> start, Position<> end, bool isCapture,
         }
 }
 
-std::ostream& operator<<(std::ostream& os, const Color& c) {
-    std::string color = c == Color::WHITE ? "White" : "Black";
-    os << color;
+std::ostream& operator<<(std::ostream& os, const Move& move) {
+    os << "Start: " << move.startPos << " End: " << move.endPos << " isCapture: " << move.isCapture 
+    << " isCastle: " << move.isCastle << " isEnPassant: " << move.isEnPassant << " IsCheck: "<< move.isCheck
+    << " isCheckMate: " << move.isCheckMate << " movedPiece: " << move.movedPiece 
+    << " promotedTo: " << move.promotedTo << " CapturedPieceType: "
+    << move.capturedPieceType << " capturedPieceColor: " << move.capturedPieceColor;
+
     return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const Position<>& p) {
-    os << "x: " << p.x << " y: " << p.y;
+std::ostream& operator<<(std::ostream& os, const Color& c) {
+    switch (c) {
+        case Color::WHITE: os << "Fehér"; break;
+        case Color::BLACK: os << "Sötét"; break;
+        case Color::NONE:  os << "Üres"; break;
+    }
     return os;
 }

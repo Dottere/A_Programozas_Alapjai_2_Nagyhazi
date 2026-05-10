@@ -3,6 +3,7 @@
 
 #include "gamemaster.hpp"
 #include "board.hpp"
+#include "chesstypes.hpp"
 
 #include <string>
 #include <vector>
@@ -14,7 +15,7 @@ class PGNHandler {
     char getDisambiguation(Board& board, const Move& m, bool isWhiteToMove);
 
     public:
-        std::vector<Move> parseFile(std::string filePath, Board& board);
+        std::pair<PGNMetadata, std::vector<Move>> parseFile(std::string filePath, Board& board);
 
         std::string generatePGN(const PGNMetadata& metadata, const std::vector<Move>& history);
 };

@@ -1,6 +1,7 @@
 #include "gamemaster.hpp"
 
 #include "pgnhandler.hpp"
+#include "constants.hpp"
 
 #include <iostream>
 #include <regex>
@@ -252,11 +253,83 @@ bool GameMaster::isValidInput(std::string userInput) {
     return std::regex_match(userInput, pattern);
 }
 
-void GameMaster::run(const std::string& fenStr) {
-    PGNHandler pgnhandler;
+void GameMaster::run(const std::string& fenStr, const std::string& pgnFilePath) {
+    if (pgnFilePath.empty()) {
+        manualPlay(fenStr);
+    } else {
+        replayPGN(pgnFilePath);
+    }
+}
+
+
+void GameMaster::replayPGN(const std::string& pgnFilePath) {
+
+    auto parsed = pgnhandler.parseFile(pgnFilePath, board);
+    auto metadata = parsed.first;
+    this->moveHistory = parsed.second;
+    std::string startingFen = metadata.fen.empty() ? std::string(DEFAULT_FEN) : metadata.fen;
+
+    int currentMoveIndex = 0;
+    std::vector<std::string> historyStates;
+
+    board.loadFromFEN(startingFen);
+    historyStates.push_back(board.generateFEN());
+
+    renderer.display();
+
+    bool replaying = true;
+    while (replaying) {
+        std::cout << "Press 'n' (NEXT), 'p' (PREVIOUS), 'q' (QUIT): ";
+        char input;
+        std::cin >> input;
+
+        if (input == 'q') {
+            replaying = false;
+        } 
+        else if (input == 'n' && currentMoveIndex < moveHistory.size()) {
+            const auto& m = moveHistory[currentMoveIndex];
+
+            board.movePiece(m.startPos, m.endPos);
+            if (m.isCastle) {
+                using namespace CASTLING_POSITION_CONSTANTS;
+                if (m.endPos.x == KING_DEST_KINGSIDE_X) {
+                    board.movePiece(Position<>(ROOK_START_KINGSIDE_X, m.startPos.y), Position<>(ROOK_DEST_KINGSIDE_X, m.startPos.y));
+                } else if (m.endPos.x == KING_DEST_QUEENSIDE_X) {
+                board.movePiece(Position<>(ROOK_START_QUEENSIDE_X, m.startPos.y), Position<>(ROOK_DEST_QUEENSIDE_X, m.startPos.y));
+                }
+            }
+            else if (m.isEnPassant) {
+                board.removePiece(Position<>(m.endPos.x, m.startPos.y));
+            }
+            else if (m.promotedTo != '\0') {
+                board.promotePiece(m.endPos, m.promotedTo, board.getTurn());
+            }
+            board.nextTurn(); 
+
+            currentMoveIndex++;
+            if (currentMoveIndex >= historyStates.size()) {
+                historyStates.push_back(board.generateFEN());
+            }
+
+            renderer.display();
+        }
+        else if (input == 'p' && currentMoveIndex > 0) {
+            currentMoveIndex--;
+
+            std::cout << "DEBUG: Loading FEN: " << historyStates[currentMoveIndex] << std::endl;
+
+            board.loadFromFEN(historyStates[currentMoveIndex]);
+
+            renderer.display();
+        }
+    }
+
+}
+
+void GameMaster::manualPlay(const std::string& fenStr) {
     PGNMetadata metadata;
 
-    if (fenStr != "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") {
+    if (fenStr != std::string(DEFAULT_FEN)) {
         metadata.setup = 1;
         metadata.fen = fenStr;
     }
@@ -306,12 +379,11 @@ void GameMaster::run(const std::string& fenStr) {
 
         std::ofstream outFile(filename + ".pgn");
         if (outFile.is_open()) {
-            outFile << pgnhandler.generatePGN(metadata, getMoveHistory());
+            outFile << pgnhandler.generatePGN(metadata, moveHistory);
             outFile.close();
             std::cout << "A játék sikeresen elmentve a " << filename << ".pgn fájlba!" << std::endl;
         } else {
             std::cerr << "Hiba: Nem lehetett megnyitni a fájlt az íráshoz!" << std::endl;
         }
     }
-
 }

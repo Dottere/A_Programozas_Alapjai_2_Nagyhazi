@@ -35,7 +35,12 @@ struct Position{
         return (x == -1 || y == -1) ? false : true;
     }
 };
-std::ostream& operator<<(std::ostream& os, const Position<>& p);
+
+template <typename T = int>
+std::ostream& operator<<(std::ostream& os, const Position<T>& p) {
+    os << "{" << p.x << ", " << p.y << "}";
+    return os;
+}
 
 struct Move {
 
@@ -58,6 +63,7 @@ struct Move {
     char capturedPieceType; // 'n', 'p', 'r'... etc
     Color capturedPieceColor;
 };
+std::ostream& operator<<(std::ostream& os, const Move& move);
 
 struct PGNMetadata {
     std::string event = "?";

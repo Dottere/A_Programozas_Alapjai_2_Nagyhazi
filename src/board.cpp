@@ -9,6 +9,11 @@
 #include <cctype>
 #include <regex>
 
+
+namespace {
+    const std::regex FEN_REGEX(R"(^([prnbqkPRNBQK1-8]+(?:/[prnbqkPRNBQK1-8]+){7})\s+([wb])\s+(-|[KQkq]{1,4})\s+(-|[a-h][36])\s+(\d+)\s+([1-9]\d*)$)");
+}
+
 Board::Board(const Board& b) {
     for (int i = 0; i < 8; i++){
         for (int j = 0; j < 8; j++) {
@@ -194,6 +199,8 @@ void Board::clearBoard() {
     enPassantTarget = Position<>{-1, -1};
     halfMoveClock = 0;
     fullMoveNumber = 1;
+    whiteCaptured.clear();
+    blackCaptured.clear();
 }
 
 bool Board::loadFromFEN(const std::string& fen) {
@@ -201,9 +208,8 @@ bool Board::loadFromFEN(const std::string& fen) {
     std::stringstream ss(fen);
 
     std::string fullFENString = ss.str();
-    std::regex fenRegex(R"(^([prnbqkPRNBQK1-8]+(?:/[prnbqkPRNBQK1-8]+){7})\s+([wb])\s+(-|[KQkq]{1,4})\s+(-|[a-h][36])\s+(\d+)\s+([1-9]\d*)$)");
 
-    if (!std::regex_match(fullFENString, fenRegex)) return false;
+    if (!std::regex_match(fullFENString, FEN_REGEX)) return false;
 
     std::string placement, activeColor, castling, enPassant;
     int halfMoveClock = 0, fullMoveNumber = 1;
@@ -271,3 +277,72 @@ bool Board::loadFromFEN(const std::string& fen) {
     return true;
 }
 
+std::string Board::generateFEN() const {
+    std::stringstream fen;
+
+    // 1. Piece placement
+    for (int arrayY = 0; arrayY < BOARD_SIZE; ++arrayY) {
+        int emptyCount = 0;
+
+        for (int x = 0; x < BOARD_SIZE; ++x) {
+            const Piece* p = board[x][arrayY].get();
+
+            if (!p) {
+                emptyCount++;
+            } else {
+                if (emptyCount > 0) {
+                    fen << emptyCount;
+                    emptyCount = 0;
+                }
+                char type = p->getPieceType();
+
+                if (p->getColor() == Color::WHITE) {
+                    fen << (char)std::toupper(static_cast<unsigned char>(type));
+                } else {
+                    fen << (char)std::tolower(static_cast<unsigned char>(type));
+                }
+            }
+        }
+
+        if (emptyCount > 0) {
+            fen << emptyCount;
+        }
+
+        if (arrayY < BOARD_SIZE - 1) {
+            fen << '/';
+        }
+    
+    }
+
+    // 2. Turn
+    fen << " " << (turn == Color::WHITE ? "w" : "b");
+   
+    // 3. Castling
+    fen << " ";
+    bool hasCastling = false;
+    if (canWhiteCastleKingside)  { fen << 'K'; hasCastling = true; }
+    if (canWhiteCastleQueenside) { fen << 'Q'; hasCastling = true; }
+    if (canBlackCastleKingside)  { fen << 'k'; hasCastling = true; }
+    if (canBlackCastleQueenside) { fen << 'q'; hasCastling = true; }
+    
+    if (!hasCastling) {
+        fen << '-';
+    }
+
+    // 4. En Passant target
+    fen << " ";
+    if (enPassantTarget.x == -1 || enPassantTarget.y == -1) {
+        fen << '-';
+    } else {
+        fen << static_cast<char>('a' + enPassantTarget.x);
+        fen << static_cast<char>('1' + enPassantTarget.y);
+    }
+
+    // 5. Halfmove clock
+    fen << " " << halfMoveClock;
+
+    // 6. Fullmove number
+    fen << " " << fullMoveNumber;
+
+    return fen.str();
+}

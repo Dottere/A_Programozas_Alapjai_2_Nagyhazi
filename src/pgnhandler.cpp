@@ -6,41 +6,65 @@
 #include <string>
 #include <regex>
 
+namespace {
+    const std::regex META_REGEX("\\[([a-zA-Z]+)\\s+\"([^\"]*)\"\\]");
+    const std::regex COMMENT_REGEX(R"(\{.*?\})");
+    const std::regex VARIATION_REGEX(R"(\(.*?\))");
+    std::regex MOVE_NUM_REGEX(R"(\b\d+\.+ *)");
+
+/**
+     * @brief Tokenizálja a fennmaradó megtisztított SAN kifejezést (standard algebraic notation)
+     * 
+     * Megkeresi a bábukat [KQRBN], oszlopokat [a-h], sorokat [1-8], elfogásokat (x), sakkokat (+), mattot (#), 
+     * és a sáncolást (O-O vagy O-O-O)
+     */
+    std::regex SAN_REGEX(R"([KQRBN]?[a-h]?[1-8]?x?[a-h][1-8](?:=[QRBN])?[\+#]?|O-O(?:-O)?)");
+}
 
 
-std::vector<Move> PGNHandler::parseFile(std::string filePath, Board& board) {
+std::pair<PGNMetadata, std::vector<Move>> PGNHandler::parseFile(std::string filePath, Board& board) {
+    PGNMetadata metadata;
     std::vector<Move> parsedMoves;
     std::ifstream file(filePath);
     std::string line;
 
     if (!file.is_open()) {
         std::cerr << "Hiba: Nem lehetett megnyitni a(z) " << filePath << " elérési úton lévő fájlt!" << std::endl;
-        return parsedMoves;
+        return {metadata, parsedMoves};
     }
 
     std::string rawMoveText = "";
 
+    
+    std::smatch metaMatch;
+
     while (std::getline(file, line)) {
         if (line.empty()) continue;
-        if (line[0] == '[') continue; // skip pgn metadata
+        if (line[0] == '[') {
+            if (std::regex_search(line, metaMatch, META_REGEX)) {
+                std::string key = metaMatch[1].str();
+                std::string value = metaMatch[2].str();
+                if (key == "Event") metadata.event = value;
+                else if (key == "Site") metadata.site = value;
+                else if (key == "Date") metadata.date = value;
+                else if (key == "Round") metadata.round = value;
+                else if (key == "White") metadata.white = value;
+                else if (key == "Black") metadata.black = value;
+                else if (key == "Result") metadata.result = value;
+                else if (key == "FEN") metadata.fen = value;
+            }
+            continue;
+        }
 
         rawMoveText += line + " ";
     }
     file.close();
 
-    rawMoveText = std::regex_replace(rawMoveText, std::regex(R"(\{.*?\})"), ""); // remove comments
-    rawMoveText = std::regex_replace(rawMoveText, std::regex(R"(\(.*?\))"), ""); // remove variations
-    rawMoveText = std::regex_replace(rawMoveText, std::regex(R"(\b\d+\.+ *)"), ""); // remove move numbers
+    rawMoveText = std::regex_replace(rawMoveText, COMMENT_REGEX, ""); // remove comments
+    rawMoveText = std::regex_replace(rawMoveText, VARIATION_REGEX, ""); // remove variations
+    rawMoveText = std::regex_replace(rawMoveText, MOVE_NUM_REGEX, ""); // remove move numbers
 
-    /**
-     * @brief Tokenizálja a fennmaradó megtisztított SAN kifejezést (standard algebraic notation)
-     * 
-     * Megkeresi a bábukat [KQRBN], oszlopokat [a-h], sorokat [1-8], elfogásokat (x), sakkokat (+), mattot (#), 
-     * és a sáncolást (O-O vagy O-O-O)
-     */
-    std::regex sanRegex(R"([KQRBN]?[a-h]?[1-8]?x?[a-h][1-8](?:=[QRBN])?[\+#]?|O-O(?:-O)?)");
-
-    auto words_begin = std::sregex_iterator(rawMoveText.begin(), rawMoveText.end(), sanRegex);
+    auto words_begin = std::sregex_iterator(rawMoveText.begin(), rawMoveText.end(), SAN_REGEX);
     auto words_end = std::sregex_iterator();
 
     bool isWhiteToMove = true;
@@ -62,15 +86,9 @@ std::vector<Move> PGNHandler::parseFile(std::string filePath, Board& board) {
 
         if (currentMove.isCastle) {
             if (currentMove.endPos.x == 6) {
-                board.placePiece(std::unique_ptr<Piece>(board.getPiece(Position<>(7, currentMove.startPos.y))), 
-                Position<>(5, currentMove.startPos.y));
-
-                board.placePiece(nullptr, Position<>(7, currentMove.startPos.y));
+                board.movePiece(Position<>(7, currentMove.startPos.y), Position<>(5, currentMove.startPos.y));
             } else {
-                board.placePiece(std::unique_ptr<Piece>(board.getPiece(Position<>(0, currentMove.startPos.y))), 
-                Position<>(3, currentMove.startPos.y));
-
-                board.placePiece(nullptr, Position<>(0, currentMove.startPos.y));
+                board.movePiece(Position<>(0, currentMove.startPos.y), Position<>(3, currentMove.startPos.y));
             }
         }
 
@@ -80,7 +98,7 @@ std::vector<Move> PGNHandler::parseFile(std::string filePath, Board& board) {
         isWhiteToMove = !isWhiteToMove;
     }
 
-    return parsedMoves;
+    return {metadata, parsedMoves};
 }
 
 std::string PGNHandler::generatePGN(const PGNMetadata& metadata, const std::vector<Move>& history) {
@@ -100,7 +118,7 @@ std::string PGNHandler::generatePGN(const PGNMetadata& metadata, const std::vect
     pgnString += "\n";
 
     Board simBoard;
-    simBoard.loadFromFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    simBoard.loadFromFEN(std::string(DEFAULT_FEN));
     
     int halfMoveCount = 0;
 
@@ -268,8 +286,8 @@ char PGNHandler::getDisambiguation(Board& board, const Move& m, bool isWhiteToMo
     bool collisionFound = false;
     bool shareFile = false;
 
-    for (int x = 0; x < 8; x++) {
-        for (int y = 0; y < 8; y++){
+    for (int x = 0; x < BOARD_SIZE; x++) {
+        for (int y = 0; y < BOARD_SIZE; y++){
             Position<> currentPos(x,y);
 
             if (currentPos == m.startPos) continue;
