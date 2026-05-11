@@ -19,7 +19,6 @@ bool Knight::checkGeometry(Position<> startPos, Position<> endPos, const Piece* 
 }
 
 // Bishop
-
 bool Bishop::checkGeometry(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const {
     int dx = std::abs(endPos.x - startPos.x);
     int dy = std::abs(endPos.y - startPos.y);
@@ -28,7 +27,6 @@ bool Bishop::checkGeometry(Position<> startPos, Position<> endPos, const Piece* 
 }
 
 // Queen
-
 bool Queen::checkGeometry(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const {
 
     int dx = std::abs(endPos.x - startPos.x);
@@ -38,7 +36,6 @@ bool Queen::checkGeometry(Position<> startPos, Position<> endPos, const Piece* T
 }
 
 // King
-
 bool King::checkGeometry(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const {
     int dx = std::abs(endPos.x - startPos.x);
     int dy = std::abs(endPos.y - startPos.y);
@@ -51,7 +48,6 @@ bool King::checkGeometry(Position<> startPos, Position<> endPos, const Piece* Ta
 }
 
 // Pawn
-
 bool Pawn::checkGeometry(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const {
 
     int direction = isWhite() ? 1 : -1;
