@@ -1,126 +1,79 @@
 #include "piece.hpp"
-
 #include "board.hpp"
 #include <cmath>
 
 // Rook
-
-bool Rook::isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const {
-    if (startPos.x == endPos.x && startPos.y == endPos.y) return false;
-
+bool Rook::checkGeometry(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const {
     int dx = std::abs(endPos.x - startPos.x);
     int dy = std::abs(endPos.y - startPos.y);
-    if (!(dx == 0 || dy == 0)) return false;
-
-    if (TargetPiece != nullptr) {
-        if (TargetPiece->getColor() == this->getColor()) return false;
-    }
-
-    return true;
+    
+    return (dx == 0 || dy == 0);
 }
 
 // Knight
-
-bool Knight::isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const {
-    if (startPos.x == endPos.x && startPos.y == endPos.y) return false;
-
+bool Knight::checkGeometry(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const {
     int dx = std::abs(endPos.x - startPos.x);
     int dy = std::abs(endPos.y - startPos.y);
-    if (
-        !( (dx == 2 && dy == 1) || (dx == 1 && dy == 2) )
-    ) return false;
-
-    if (TargetPiece != nullptr) {
-        if (TargetPiece->getColor() == this->getColor()) return false;
-    }
-
-    return true;
+    
+    return ((dx == 2 && dy == 1) || (dx == 1 && dy == 2));
 }
 
 // Bishop
 
-bool Bishop::isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const {
-    if (startPos.x == endPos.x && startPos.y == endPos.y) return false;
-
+bool Bishop::checkGeometry(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const {
     int dx = std::abs(endPos.x - startPos.x);
     int dy = std::abs(endPos.y - startPos.y);
-    if (dx != dy) return false;
-
-    if (TargetPiece != nullptr) {
-        if (TargetPiece->getColor() == this->getColor()) return false;
-    }
-
-    return true;
-
+    
+    return (dx == dy);
 }
 
 // Queen
 
-bool Queen::isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const {
-    if (startPos.x == endPos.x && startPos.y == endPos.y) return false;
+bool Queen::checkGeometry(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const {
 
     int dx = std::abs(endPos.x - startPos.x);
     int dy = std::abs(endPos.y - startPos.y);
 
-    if ( !( (dx == 0 || dy == 0) || (dx == dy) ) ) return false;
-
-
-    if (TargetPiece != nullptr) {
-        if (TargetPiece->getColor() == this->getColor()) return false;
-    }
-
-    return true;
+    return ((dx == 0 || dy == 0) || (dx == dy));
 }
 
 // King
 
-bool King::isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const {
-    if (startPos.x == endPos.x && startPos.y == endPos.y) return false;
-
+bool King::checkGeometry(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const {
     int dx = std::abs(endPos.x - startPos.x);
     int dy = std::abs(endPos.y - startPos.y);
 
+    if (dx <= 1 && dy <= 1) return true;
 
-    if (dx <= 1 && dy <= 1) {
-        if (TargetPiece != nullptr) {
-            if (TargetPiece->getColor() == this->getColor()) return false;
-        }
-        return true;
-    }
-
-    // castling
-    if (dy == 0 && dx == 2) {
-        if (this->getHasMoved()) return false;
-        
-        if (TargetPiece) return false;
-
-        return true;
-    }
+    if (dy == 0 && dx == 2 && !getHasMoved()) return true;
 
     return false;
 }
 
 // Pawn
 
-bool Pawn::isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const {
-    if (startPos.x == endPos.x && startPos.y == endPos.y) return false;
+bool Pawn::checkGeometry(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const {
 
-    int direction = this->getColor() == Color::WHITE ? 1 : -1;
+    int direction = isWhite() ? 1 : -1;
     
     int dx = std::abs(endPos.x - startPos.x);
     int dy = endPos.y - startPos.y;
 
     if (dx == 0) {
+
         if (TargetPiece) return false;
-        if (!(dy == direction || (dy == 2 * direction && !this->getHasMoved()))) return false;
+        
+        if (dy == direction) return true;
+
+        if (dy == 2 * direction && !getHasMoved()) return true;
+
+        return false;
 
     } else if (dx == 1) {
-        if (dy != direction) return false;
+        if (dy == direction && TargetPiece) return true;
 
-        if (TargetPiece == nullptr) return false;
-        if (TargetPiece->getColor() == this->getColor()) return false;
+        return false;
+    }
 
-    } else if (dx > 1) return false;
-
-    return true;
+    return false;
 }
