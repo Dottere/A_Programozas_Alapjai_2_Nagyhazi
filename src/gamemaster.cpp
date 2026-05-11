@@ -15,7 +15,7 @@ void GameMaster::gameLoop(PGNMetadata& metadata) {
         turnStartTime = std::chrono::steady_clock::now();
 
         std::string userInput;
-        renderer.display(whiteTimeRemaining, blackTimeRemaining);
+        renderer.display(whiteTimeRemaining, blackTimeRemaining, pointsWhite, pointsBlack);
 
         while (true) {
             // 1. take input in some form, maybe pgn, maybe a more intuitive way for the player (more code more annoyance)
@@ -86,7 +86,7 @@ void GameMaster::gameLoop(PGNMetadata& metadata) {
                 turnStartTime = std::chrono::steady_clock::now();
             }
             // 5. display
-            renderer.display(whiteTimeRemaining, blackTimeRemaining);
+            renderer.display(whiteTimeRemaining, blackTimeRemaining, pointsWhite, pointsBlack);
 
             // 6. game over
             if (board.isCheckMate(board.getTurn())) {
@@ -178,12 +178,12 @@ bool GameMaster::processMove(Position<> startPos, Position<> endPos, char promot
                     clonedBoard.removePiece(Position<>(endPos.x, startPos.y));
                 }
 
-                clonedBoard.movePiece(startPos, endPos);
-
 
                 if (isCastle) {
                     clonedBoard.movePiece(Position<>(rookStartX, startPos.y), Position<>(rookEndX, startPos.y));
                 }
+
+                
                 
 
                 if (clonedBoard.isCheck(board.getTurn())) {
@@ -198,13 +198,18 @@ bool GameMaster::processMove(Position<> startPos, Position<> endPos, char promot
                     capturedPiece = const_cast<Piece*>(target);
                 }
 
-                bool isCapture = (capturedPiece != nullptr);
+                bool isCapture = (capturedPiece);
                 char movedPieceChar = p->getPieceType();
 
                 // real move
 
                 if (isEnPassant) {
                     board.removePiece(Position<>(endPos.x, startPos.y));
+                }
+
+                if (isCapture) {
+                    capturedPiece->getColor() == Color::WHITE ? pointsBlack += capturedPiece->getValue() 
+                    : pointsWhite += capturedPiece->getValue();
                 }
 
                 board.movePiece(startPos, endPos);
@@ -293,7 +298,7 @@ void GameMaster::replayPGN(const std::string& pgnFilePath) {
     board.loadFromFEN(startingFen);
     historyStates.push_back(board.generateFEN());
 
-    renderer.display(whiteTimeRemaining, blackTimeRemaining);
+    renderer.display(whiteTimeRemaining, blackTimeRemaining, pointsWhite, pointsBlack);
 
     bool replaying = true;
     while (replaying) {
@@ -325,11 +330,11 @@ void GameMaster::replayPGN(const std::string& pgnFilePath) {
             board.nextTurn(); 
 
             currentMoveIndex++;
-            if (currentMoveIndex >= historyStates.size()) {
+            if (static_cast<size_t>(currentMoveIndex) >= historyStates.size()) {
                 historyStates.push_back(board.generateFEN());
             }
 
-            renderer.display(whiteTimeRemaining, blackTimeRemaining);
+            renderer.display(whiteTimeRemaining, blackTimeRemaining, pointsWhite, pointsBlack);
         }
         else if (input == 'p' && currentMoveIndex > 0) {
             currentMoveIndex--;
@@ -338,7 +343,7 @@ void GameMaster::replayPGN(const std::string& pgnFilePath) {
 
             board.loadFromFEN(historyStates[currentMoveIndex]);
 
-            renderer.display(whiteTimeRemaining, blackTimeRemaining);
+            renderer.display(whiteTimeRemaining, blackTimeRemaining, pointsWhite, pointsBlack);
         }
     }
 

@@ -4,7 +4,10 @@
 
 #include <iostream>
 
-void Renderer::display(double whiteTime, double blackTime) {
+void Renderer::display(double whiteTime, double blackTime, int whitePoints, int blackPoints) {
+    // clear the screen and reset cursor
+    std::cout << "\033[2J\033[H" << std::endl;
+
     // colour setup
     const std::string RESET = "\033[0m";
     const std::string P1_COLOR = "\033[97m"; // Bright White Text
@@ -57,14 +60,20 @@ void Renderer::display(double whiteTime, double blackTime) {
         if (row == 7) std::cout << padding << "Következik: " << board.getTurn();
         else if (row == 5) {
             std::cout << padding << "Fehér által leütött: ";
-            for (const auto& p : board.getWhiteCaptured()) {
-                if (p) std::cout << P1_COLOR << p->getSymbol() << " " << RESET;
+            for (const auto& p : board.getBlackCaptured()) {
+                if (p) std::cout << P2_COLOR << p->getSymbol() << " " << RESET;
+            }
+            if (whitePoints > blackPoints) {
+                std::cout << P1_COLOR << " (+" << (whitePoints - blackPoints) << ")" << RESET;
             }
         }
         else if (row == 3) {
             std::cout << padding << "Sötét által leütött: ";
-            for (const auto& p : board.getBlackCaptured()) {
-                if (p) std::cout << P2_COLOR << p->getSymbol() << " " << RESET;
+            for (const auto& p : board.getWhiteCaptured()) {
+                if (p) std::cout << P1_COLOR << p->getSymbol() << " " << RESET;
+            }
+            if (blackPoints > whitePoints) {
+                std::cout << P1_COLOR << " (+" << (blackPoints - whitePoints) << ")" << RESET;
             }
         }
         else if (row == 1) {
@@ -82,6 +91,8 @@ void Renderer::display(double whiteTime, double blackTime) {
         int x = isWhitePOV ? col : 7 - col; // Flip files for Black
         std::cout << (char)('A'+x) << " ";
     }
+
+    std::cout << "       " << "Összpontszám: " << whitePoints << " | " << blackPoints;
 
     std::cout << std::endl;
 } 

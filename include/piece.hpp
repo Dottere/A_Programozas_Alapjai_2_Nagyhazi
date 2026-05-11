@@ -6,6 +6,7 @@
 */
 
 #include "chesstypes.hpp"
+#include "constants.hpp"
 #include <string>
 #include <memory>
 
@@ -26,12 +27,15 @@ class Piece {
     protected: 
         std::string symbol;
         char pieceType;
+        int value;
 
     public:
         Piece(Color color) : PieceColor(color) {;}
         virtual ~Piece() = default;
 
-        bool isKing() const { return pieceType == 'K'; }
+        inline bool isKing() const { return pieceType == 'K'; }
+
+        inline int getValue() const  { return value; }
 
         /**
          * @brief Megmondja, hogy az adott mezőre lépés lehetséges-e.
@@ -90,6 +94,7 @@ class Rook : public Piece {
         Rook(Color color) : Piece(color) {
             symbol = (color == Color::WHITE) ? "\u2656" : "\u265C";
             pieceType = 'R';
+            value = static_cast<int>(PIECE_VALUES::ROOK);
         }
 
         /** 
@@ -117,6 +122,7 @@ class Knight : public Piece {
         Knight(Color color) : Piece(color) {
             symbol = (color == Color::WHITE) ? "\u2658" : "\u265E";
             pieceType = 'N';
+            value = static_cast<int>(PIECE_VALUES::KNIGHT);
         }
 
         bool isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const override;
@@ -135,6 +141,7 @@ class Bishop : public Piece {
         Bishop(Color color) : Piece(color) {
             symbol = (color == Color::WHITE) ? "\u2657" : "\u265D";
             pieceType = 'B';
+            value = static_cast<int>(PIECE_VALUES::BISHOP);
         }
 
         bool isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const override;
@@ -149,6 +156,7 @@ class Queen : public Piece {
         Queen(Color color) : Piece(color) {
             symbol = (color == Color::WHITE) ? "\u2655" : "\u265B";
             pieceType = 'Q';
+            value = static_cast<int>(PIECE_VALUES::QUEEN);
         }
 
         bool isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const override;
@@ -163,6 +171,7 @@ class King : public Piece {
         King(Color color) : Piece(color) {
             symbol = (color == Color::WHITE) ? "\u2654" : "\u265A";
             pieceType = 'K';
+            value = static_cast<int>(PIECE_VALUES::KING);
         }
 
         bool isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const override;
@@ -177,6 +186,7 @@ class Pawn : public Piece {
         Pawn(Color color) : Piece(color) {
             symbol = (color == Color::WHITE) ? "\u2659" : "\u265F"; // \u2659
             pieceType = 'P';
+            value = static_cast<int>(PIECE_VALUES::PAWN);
         }
 
         bool isValidMove(Position<> startPos, Position<> endPos, const Piece* TargetPiece) const override;

@@ -19,7 +19,10 @@ class GameMaster {
     
     double whiteTimeRemaining; // seconds;
     double blackTimeRemaining;
-    std::chrono::time_point<std::chrono::steady_clock> turnStartTime ;
+    std::chrono::time_point<std::chrono::steady_clock> turnStartTime;
+
+    int pointsWhite = 0;
+    int pointsBlack = 0;
 
     std::vector<Move> moveHistory;
 

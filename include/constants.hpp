@@ -16,3 +16,12 @@ namespace CASTLING_POSITION_CONSTANTS {
     inline constexpr int ROOK_DEST_KINGSIDE_X = 5;
     inline constexpr int ROOK_DEST_QUEENSIDE_X = 3;
 }
+
+enum class PIECE_VALUES {
+    PAWN = 1,
+    BISHOP = 3,
+    KNIGHT = 3,
+    ROOK = 5,
+    QUEEN = 9,
+    KING = 10
+};
