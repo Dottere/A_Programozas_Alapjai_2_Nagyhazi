@@ -68,7 +68,9 @@ void Renderer::display(double whiteTime, double blackTime) {
             }
         }
         else if (row == 1) {
-            std::cout << padding << "[" << formatTime(whiteTime) << " : " << formatTime(blackTime) << "]";
+            if (whiteTime <= 999.0) {
+                std::cout << padding << "[" << formatTime(whiteTime) << " : " << formatTime(blackTime) << "]";
+            }
         }
 
         std::cout << std::endl;

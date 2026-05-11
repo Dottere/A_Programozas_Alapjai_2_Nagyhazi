@@ -35,7 +35,7 @@ public:
     : board(board), 
     renderer(renderer), 
     pgnhandler(pgnhandler) {
-        double seconds = 0;
+        double seconds = 999999;
 
         if (timeControl.size() == 1) {
             seconds = static_cast<double>((timeControl[0] - '0') * 60);

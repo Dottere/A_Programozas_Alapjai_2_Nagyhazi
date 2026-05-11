@@ -77,8 +77,8 @@ void GameMaster::gameLoop(PGNMetadata& metadata) {
                 }
 
                 if (whiteTimeRemaining <= 0 || blackTimeRemaining <= 0) {
-                std::cout << "Időlejárat! A játék véget ért." << std::endl;
-                break; 
+                    std::cout << "Időlejárat! A játék véget ért." << std::endl;
+                    break; 
                 }
                 
                 // 4. change turn
@@ -304,7 +304,7 @@ void GameMaster::replayPGN(const std::string& pgnFilePath) {
         if (input == 'q') {
             replaying = false;
         } 
-        else if (input == 'n' && currentMoveIndex < moveHistory.size()) {
+        else if (input == 'n' && static_cast<size_t>(currentMoveIndex) < moveHistory.size()) {
             const auto& m = moveHistory[currentMoveIndex];
 
             board.movePiece(m.startPos, m.endPos);
