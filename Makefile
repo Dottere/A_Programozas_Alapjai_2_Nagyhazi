@@ -1,13 +1,17 @@
 CXX = g++
-CXXFLAGS = -Wall -std=c++17 -Iinclude
+CXXFLAGS = -Wall -std=c++17 -Iinclude -Itesting
 LDFLAGS = 
 
 SRC = $(wildcard src/*.cpp)
 OBJ = $(patsubst src/%.cpp, build/%.o, $(SRC))
 
-TARGET = cli-chess
+TEST_SRC = $(filter-out src/main.cpp, $(SRC)) $(wildcard testing/*.cpp)
+TEST_OBJ = $(patsubst %.cpp, build/%.o, $(subst testing/, testing_obj/, $(TEST_SRC))) 
 
-.PHONY: all clean sanitize
+TARGET = cli-chess
+TEST_TARGET = run_tests
+
+.PHONY: all clean sanitize test
 
 all: $(TARGET)
 
@@ -19,8 +23,12 @@ build/%.o: src/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	rm -rf build $(TARGET)
+	rm -rf build $(TARGET) $(TEST_TARGET)
 
 sanitize: 
 	$(MAKE) clean
 	$(MAKE) all CXXFLAGS="$(CXXFLAGS) -g -fsanitize=address" LDFLAGS="-fsanitize=address"
+
+test: clean
+	$(CXX) $(CXXFLAGS) -g -fsanitize=address $(TEST_SRC) -o $(TEST_TARGET) -fsanitize=address
+	./$(TEST_TARGET)

@@ -3,3 +3,4 @@ cli-chess
 html/
 .vscode
 *.pgn
+run_tests
