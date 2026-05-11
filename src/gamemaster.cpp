@@ -9,11 +9,13 @@
 #include <ctime>
 #include <iomanip>
 #include <fstream>
+#include <chrono>
 
 void GameMaster::gameLoop(PGNMetadata& metadata) {
-    
+        turnStartTime = std::chrono::steady_clock::now();
+
         std::string userInput;
-        renderer.display();
+        renderer.display(whiteTimeRemaining, blackTimeRemaining);
 
         while (true) {
             // 1. take input in some form, maybe pgn, maybe a more intuitive way for the player (more code more annoyance)
@@ -59,16 +61,32 @@ void GameMaster::gameLoop(PGNMetadata& metadata) {
                 }
             }
             // 3. processMove(startPos, endPos)
-
+            Color actor = board.getTurn();
             bool moveSuccessful = processMove(currentMoveStartPos, currentMoveEndPos, promotedTo);
 
             if (!moveSuccessful) {
                 continue;
+            }  else {
+                auto turnEndTime = std::chrono::steady_clock::now();
+                double secondsSpent = std::chrono::duration<double>(turnEndTime - turnStartTime).count();
+
+                if (actor == Color::WHITE) {
+                    whiteTimeRemaining -= secondsSpent;
+                } else {
+                    blackTimeRemaining -= secondsSpent;
+                }
+
+                if (whiteTimeRemaining <= 0 || blackTimeRemaining <= 0) {
+                std::cout << "Időlejárat! A játék véget ért." << std::endl;
+                break; 
+                }
+                
+                // 4. change turn
+                board.nextTurn();
+                turnStartTime = std::chrono::steady_clock::now();
             }
-            // 4. change turn
-            board.nextTurn();
             // 5. display
-            renderer.display();
+            renderer.display(whiteTimeRemaining, blackTimeRemaining);
 
             // 6. game over
             if (board.isCheckMate(board.getTurn())) {
@@ -275,7 +293,7 @@ void GameMaster::replayPGN(const std::string& pgnFilePath) {
     board.loadFromFEN(startingFen);
     historyStates.push_back(board.generateFEN());
 
-    renderer.display();
+    renderer.display(whiteTimeRemaining, blackTimeRemaining);
 
     bool replaying = true;
     while (replaying) {
@@ -311,7 +329,7 @@ void GameMaster::replayPGN(const std::string& pgnFilePath) {
                 historyStates.push_back(board.generateFEN());
             }
 
-            renderer.display();
+            renderer.display(whiteTimeRemaining, blackTimeRemaining);
         }
         else if (input == 'p' && currentMoveIndex > 0) {
             currentMoveIndex--;
@@ -320,7 +338,7 @@ void GameMaster::replayPGN(const std::string& pgnFilePath) {
 
             board.loadFromFEN(historyStates[currentMoveIndex]);
 
-            renderer.display();
+            renderer.display(whiteTimeRemaining, blackTimeRemaining);
         }
     }
 

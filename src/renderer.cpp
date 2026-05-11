@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-void Renderer::display() {
+void Renderer::display(double whiteTime, double blackTime) {
     // colour setup
     const std::string RESET = "\033[0m";
     const std::string P1_COLOR = "\033[97m"; // Bright White Text
@@ -66,6 +66,9 @@ void Renderer::display() {
             for (const auto& p : board.getBlackCaptured()) {
                 if (p) std::cout << P2_COLOR << p->getSymbol() << " " << RESET;
             }
+        }
+        else if (row == 1) {
+            std::cout << padding << "[" << formatTime(whiteTime) << " : " << formatTime(blackTime) << "]";
         }
 
         std::cout << std::endl;

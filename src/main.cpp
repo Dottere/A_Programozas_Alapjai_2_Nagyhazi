@@ -9,6 +9,7 @@
 #include <string_view>
 #include <iostream>
 #include <cstdlib>
+#include <chrono>
 
 namespace {
 
@@ -17,11 +18,12 @@ constexpr std::string_view HELP_STRING = R"(Usage: cli-chess [OPTIONS]
 A CLI based chess game with support to loading FEN/PGN games
 
 Options:
-    -h, --help                      Prints this help
-    -f, --fen <string>              Loads a game from the provided FEN string
-    -p, --pgn <file path>           Loads a game from the provided PGN allowing you to analyze is step by step)";
+    -h, --help                          Prints this help
+    -f, --fen <string>                  Loads a game from the provided FEN string
+    -p, --pgn <file path>               Loads a game from the provided PGN allowing you to analyze is step by step)
+    -t, --time-control <1|5|10|60>      Sets the time control of the game to <1|5|10|60> minutes)";
 
-bool parseArguments(int argc, char* argv[], std::string& fenStr, std::string& pgnFilePath) {
+bool parseArguments(int argc, char* argv[], std::string& fenStr, std::string& pgnFilePath, std::string& timeControl) {
     std::vector<std::string_view> args(argv, argv + argc);
 
     for (size_t i = 1; i < args.size(); i++) {
@@ -45,6 +47,14 @@ bool parseArguments(int argc, char* argv[], std::string& fenStr, std::string& pg
                 return false;
             }
         }
+        else if (args[i] == "--time-control" || args[i] == "-t") {
+            if (++i != args.size() && (args[i] == "1" || args[i] == "5" || args[i] == "10" || args[i] == "60")) {
+                timeControl = std::string(args[i]);
+            } else {
+                std::cerr << "Helytelen időformátum! Válassz ezek közül: <1|5|10|60>" << std::endl;
+                return false;
+            }
+        }
         else {
             std::cerr << "Ismeretlen paraméter: " << args[i] << std::endl;
             return false;
@@ -57,8 +67,9 @@ bool parseArguments(int argc, char* argv[], std::string& fenStr, std::string& pg
 int main(int argc, char* argv[]) {   
     std::string fenStr = std::string(DEFAULT_FEN);
     std::string pgnFilePath;
+    std::string timeControl;
 
-    if (!parseArguments(argc, argv, fenStr, pgnFilePath)) {
+    if (!parseArguments(argc, argv, fenStr, pgnFilePath, timeControl)) {
         return EXIT_FAILURE;
     }
 
@@ -70,7 +81,7 @@ int main(int argc, char* argv[]) {
 
     Renderer renderer(board);
     PGNHandler pgnhandler;
-    GameMaster gamemaster(board, renderer, pgnhandler);
+    GameMaster gamemaster(board, renderer, pgnhandler, timeControl);
 
     gamemaster.run(fenStr, pgnFilePath);
     
