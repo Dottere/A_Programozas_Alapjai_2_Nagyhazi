@@ -269,6 +269,9 @@ bool Board::loadFromFEN(std::string_view fen) {
         enPassantTarget = Position<>{epX, epY};
     }
 
+    this->fullMoveNumber = fullMoveNumber;
+    this->halfMoveClock = halfMoveClock;
+
     return true;
 }
 

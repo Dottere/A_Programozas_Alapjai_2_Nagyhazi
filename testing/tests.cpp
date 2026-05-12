@@ -6,6 +6,14 @@
 int main() {
     GTINIT(std::cin); 
 
+    TEST(FENTeszt, BetoltKiad) {
+        constexpr std::string_view MID_GAME_POSITION = "r1bqk2r/pppp1ppp/2n2n2/4p3/2B1P3/2NP1N2/PPP2PPP/R1BQ1RK1 b kq - 4 6";
+        Board board;
+        board.loadFromFEN(MID_GAME_POSITION);
+        EXPECT_EQ(MID_GAME_POSITION, board.generateFEN());
+    } ENDM
+
+
     TEST(HuszarTeszt, SzabalyosLepesek) {
         Knight k(Color::WHITE);
         // L lépés
