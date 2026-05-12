@@ -6,7 +6,7 @@
 
 void Renderer::display(double whiteTime, double blackTime, int whitePoints, int blackPoints) {
     // clear the screen and reset cursor
-    std::cout << "\033[2J\033[H" << std::endl;
+    std::cout << "\033[2J\033[H" << '\n';
 
     // colour setup
     const std::string RESET = "\033[0m";
@@ -23,7 +23,7 @@ void Renderer::display(double whiteTime, double blackTime, int whitePoints, int 
         int x = isWhitePOV ? col : 7 - col; // Flip files for Black
         std::cout << (char)('A'+x) << " ";
     }
-    std::cout << std::endl;
+    std::cout << '\n';
 
     for (int row = 7; row >= 0; row--) { 
         int y = isWhitePOV ? row : 7 - row; 
@@ -82,7 +82,7 @@ void Renderer::display(double whiteTime, double blackTime, int whitePoints, int 
             }
         }
 
-        std::cout << std::endl;
+        std::cout << '\n';
     }
     
     // footer
@@ -93,6 +93,67 @@ void Renderer::display(double whiteTime, double blackTime, int whitePoints, int 
     }
 
     std::cout << "       " << "Összpontszám: " << whitePoints << " | " << blackPoints;
+
+    std::cout << std::endl;
+} 
+
+void Renderer::display() {
+    // clear the screen and reset cursor
+    std::cout << "\033[2J\033[H" << '\n';
+
+    // colour setup
+    const std::string RESET = "\033[0m";
+    const std::string P1_COLOR = "\033[97m"; // Bright White Text
+    const std::string P2_COLOR = "\033[30m"; // Black Text
+    const std::string BG_WHITE = "\033[47m"; // Light Grey Background (Light Squares)
+    const std::string BG_DARK   = "\033[42m"; // Green Background (Dark Squares)
+
+    bool isWhitePOV = (board.getTurn() == Color::WHITE);
+
+    // header
+    std::cout << "  ";
+    for (int col = 0; col < 8; col++) {
+        int x = isWhitePOV ? col : 7 - col; // Flip files for Black
+        std::cout << (char)('A'+x) << " ";
+    }
+    std::cout << '\n';
+
+    for (int row = 7; row >= 0; row--) { 
+        int y = isWhitePOV ? row : 7 - row; 
+
+        // left border
+        std::cout << y + 1 << " ";
+
+        for (int col = 0; col < 8; col++) {
+            int x = isWhitePOV ? col : 7 - col; // Flip files for Black
+
+            const Piece* p = board.getPiece(Position<>(x, y));
+
+            if ((x + y) % 2 != 0) { 
+                std::cout << BG_WHITE; 
+            } else {
+                std::cout << BG_DARK; 
+            }
+
+            if (p) {
+                if (p->getColor() == Color::WHITE)
+                    std::cout << P1_COLOR << p->getSymbol() << " " << RESET;
+                else
+                    std::cout << P2_COLOR << p->getSymbol() << " " << RESET; 
+            } else {
+                std::cout << "  " << RESET; 
+            }
+        }
+
+        std::cout << " " << y + 1 << '\n';
+    }
+    
+    // footer
+    std::cout << "  ";
+    for (int col = 0; col < 8; col++) {
+        int x = isWhitePOV ? col : 7 - col; // Flip files for Black
+        std::cout << (char)('A'+x) << " ";
+    }
 
     std::cout << std::endl;
 } 

@@ -18,6 +18,7 @@ class Renderer {
     public:
         Renderer(const Board& board) : board(board) {}
         void display(double whiteTime, double blackTime, int whitePoints, int blackPoints);
+        void display();
 
         inline std::string formatTime(double totalSeconds) {
             if (totalSeconds < 0) totalSeconds = 0;

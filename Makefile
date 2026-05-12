@@ -5,8 +5,10 @@ LDFLAGS =
 SRC = $(wildcard src/*.cpp)
 OBJ = $(patsubst src/%.cpp, build/%.o, $(SRC))
 
-TEST_SRC = $(filter-out src/main.cpp, $(SRC)) $(wildcard testing/*.cpp)
-TEST_OBJ = $(patsubst %.cpp, build/%.o, $(subst testing/, testing_obj/, $(TEST_SRC))) 
+TEST_SRC = $(wildcard testing/*.cpp)
+
+TEST_OBJ = $(patsubst src/%.cpp, build/test_obj/src/%.o, $(filter-out src/main.cpp, $(SRC))) \
+           $(patsubst testing/%.cpp, build/test_obj/testing/%.o, $(TEST_SRC))
 
 TARGET = cli-chess
 TEST_TARGET = run_tests
@@ -29,6 +31,26 @@ sanitize:
 	$(MAKE) clean
 	$(MAKE) all CXXFLAGS="$(CXXFLAGS) -g -fsanitize=address" LDFLAGS="-fsanitize=address"
 
-test: clean
-	$(CXX) $(CXXFLAGS) -g -fsanitize=address $(TEST_SRC) -o $(TEST_TARGET) -fsanitize=address
+# --- TEST TARGETS ---
+
+RENDER ?= 0
+
+ifeq ($(RENDER),1)
+    RENDER_FLAG = -DALSO_RENDER
+else
+    RENDER_FLAG =
+endif
+
+test: $(TEST_TARGET)
 	./$(TEST_TARGET)
+
+$(TEST_TARGET): $(TEST_OBJ)
+	$(CXX) $(CXXFLAGS) $(RENDER_FLAG) -g -fsanitize=address $^ -o $@ -fsanitize=address
+
+build/test_obj/src/%.o: src/%.cpp
+	mkdir -p build/test_obj/src
+	$(CXX) $(CXXFLAGS) $(RENDER_FLAG) -g -fsanitize=address -c $< -o $@
+
+build/test_obj/testing/%.o: testing/%.cpp
+	mkdir -p build/test_obj/testing
+	$(CXX) $(CXXFLAGS) $(RENDER_FLAG) -g -fsanitize=address -c $< -o $@

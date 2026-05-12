@@ -43,6 +43,13 @@ Board::Board(const Board& b) {
 }
 
 bool Board::isPathClear(Position<> startPos, Position<> endPos) const {
+    int dx = std::abs(endPos.x - startPos.x);
+    int dy = std::abs(endPos.y - startPos.y);
+
+    if (dx != 0 && dy != 0 && dx != dy) {
+        return false;
+    }
+
     int stepX = (endPos.x > startPos.x) ? 1 : ((endPos.x < startPos.x) ? -1 : 0);
     int stepY = (endPos.y > startPos.y) ? 1 : ((endPos.y < startPos.y) ? -1 : 0);
 
@@ -95,12 +102,18 @@ bool Board::isCheck(Color c) {
             Position<> attackerPos(x, y);
             Piece* attacker = getPiece(attackerPos);
 
-            if (attacker && 
-                attacker->getColor() != c && 
-                attacker->isValidMove(attackerPos, kingPos, getPiece(kingPos)) &&
-                (attacker->canJump() || isPathClear(attackerPos, kingPos))) 
-            {
-                return true;
+            if (attacker && attacker->getColor() != c) {
+                if (attacker->isKing()) {
+                    if (std::abs(attackerPos.x - kingPos.x) > 1 || std::abs(attackerPos.y - kingPos.y) > 1) {
+                        continue;
+                    }
+                }
+
+                if (attacker->isValidMove(attackerPos, kingPos, getPiece(kingPos)) &&
+                    (attacker->canJump() || isPathClear(attackerPos, kingPos))) 
+                {
+                    return true;
+                }
             }
         }
     }

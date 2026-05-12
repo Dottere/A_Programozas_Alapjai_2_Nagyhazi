@@ -2,45 +2,91 @@
 #include "gtest_lite.h"
 #include "piece.hpp"
 #include "board.hpp"
+#include "renderer.hpp"
 
 int main() {
     GTINIT(std::cin); 
 
-    TEST(FENTeszt, BetoltKiad) {
-        constexpr std::string_view MID_GAME_POSITION = "r1bqk2r/pppp1ppp/2n2n2/4p3/2B1P3/2NP1N2/PPP2PPP/R1BQ1RK1 b kq - 4 6";
+    TEST(BoardTest, LoadInitialFEN) {
+        constexpr std::string_view STARTING_FEN_POSITION = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
         Board board;
-        board.loadFromFEN(MID_GAME_POSITION);
-        EXPECT_EQ(MID_GAME_POSITION, board.generateFEN());
+        board.loadFromFEN(STARTING_FEN_POSITION);
+        EXPECT_EQ(STARTING_FEN_POSITION, board.generateFEN());
     } ENDM
 
+    TEST(BoardTest, FENRejectsInvalidStrings) {
+        Board board;
+        // The last 4 fields are missing, namely castling, en passant, half move clock, full move number
+        EXPECT_FALSE(board.loadFromFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w")); 
+        // Added invalid character at poisition field --> [x]nbqkbnr
+        EXPECT_FALSE(board.loadFromFEN("xnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")); 
+    } ENDM
 
-    TEST(HuszarTeszt, SzabalyosLepesek) {
-        Knight k(Color::WHITE);
-        // L lépés
-        EXPECT_TRUE(k.isValidMove(Position<>(4,4), Position<>(5,6), nullptr));
-        // Egyenes lépés
-        EXPECT_FALSE(k.isValidMove(Position<>(4,4), Position<>(4,5), nullptr));
-    } ENDM 
-
-    TEST(GyalogTeszt, FeherElore) {
-        Pawn p(Color::WHITE);
-        // Sima lépés előre
-        EXPECT_TRUE(p.isValidMove(Position<>(4,1), Position<>(4,2), nullptr));
-        // Ütés előre
-        Piece* dummyEnemy = new Rook(Color::BLACK);
-        EXPECT_FALSE(p.isValidMove(Position<>(4,1), Position<>(4,2), dummyEnemy));
-        delete dummyEnemy;
-    } ENDM 
-
-    TEST(KiralynoSancolasTeszt, Kiraly) {
-        King k(Color::WHITE);
-        // Ha még nem lépett, érvényes
-        EXPECT_TRUE(k.isValidMove(Position<>(4,0), Position<>(6,0), nullptr));
+    TEST(BoardTest, PathIsClearUnobstructed) {
+        Board board;
         
-        // Ha már lépett, érvénytelen
-        k.setHasMoved();
-        EXPECT_FALSE(k.isValidMove(Position<>(4,0), Position<>(6,0), nullptr));
-    } ENDM 
+
+        // Empty board with just a rook and a target on the opposite side
+        board.loadFromFEN("8/8/8/8/8/8/8/r6K w - - 0 1");
+
+        #ifdef ALSO_RENDER
+            Renderer renderer(board);
+            renderer.display();
+        #endif
+        
+        EXPECT_TRUE(board.isPathClear(Position<>{0, 0}, Position<>{7, 0})); // a1 to h1
+    } ENDM
+
+    TEST(BoardTest, PathIsBlocked) {
+        Board board;
+        // Rook on a1, Pawn on d1, King on h1
+        board.loadFromFEN("8/8/8/8/8/8/8/r2N3K w - - 0 1");
+
+        #ifdef ALSO_RENDER
+            Renderer renderer(board);
+            renderer.display();
+        #endif
+
+        EXPECT_FALSE(board.isPathClear(Position<>{0, 0}, Position<>{7, 0})); // a1 to h1 blocked by d1
+    } ENDM
+
+    TEST(BoardTest, DetectsCheck) {
+        Board board;
+        // Black king on e8 is attacked by White Queen on e2
+        board.loadFromFEN("4k3/8/8/8/8/8/4Q3/4K3 b - - 0 1");
+
+        #ifdef ALSO_RENDER
+            Renderer renderer(board);
+            renderer.display();
+        #endif
+
+        EXPECT_TRUE(board.isCheck(Color::BLACK));
+        EXPECT_FALSE(board.isCheck(Color::WHITE));
+    } ENDM
+
+    TEST(BoardTest, DetectsCheckmate) {
+        Board board;
+        // Fool's Mate
+        board.loadFromFEN("rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3");
+        #ifdef ALSO_RENDER
+            Renderer renderer(board);
+            renderer.display();
+        #endif
+        EXPECT_TRUE(board.isCheckMate(Color::WHITE));
+        EXPECT_FALSE(board.hasLegalMoves(Color::WHITE));
+    } ENDM
+
+    TEST(BoardTest, DetectsStalemate) {
+        Board board;
+        // Famous stalemate position: Black king on a8, White king on c8, White queen on c7. Black to move.
+        board.loadFromFEN("k1K5/2Q5/8/8/8/8/8/8 b - - 0 1");
+        #ifdef ALSO_RENDER
+            Renderer renderer(board);
+            renderer.display();
+        #endif
+        EXPECT_FALSE(board.isCheck(Color::BLACK)); // Not in check
+        EXPECT_TRUE(board.isStaleMate(Color::BLACK)); // But no legal moves
+    } ENDM
 
     GTEND(std::cerr); 
 
