@@ -8,6 +8,7 @@
 #include <sstream>
 #include <cctype>
 #include <regex>
+#include <charconv>
 
 
 namespace {
@@ -15,12 +16,12 @@ namespace {
 }
 
 Board::Board(const Board& b) {
-    for (int i = 0; i < 8; i++){
-        for (int j = 0; j < 8; j++) {
+    for (int i = 0; i < BOARD_SIZE; i++){
+        for (int j = 0; j < BOARD_SIZE; j++) {
             if (b.board[i][j]) {
-                this->board[i][j] = std::move(b.board[i][j]->clone());
+                this->board[i][j] = b.board[i][j]->clone();
             } else {
-                this->board[i][j] = nullptr;
+                this->board[i][j].reset();
             }
         }
     }
@@ -63,7 +64,7 @@ bool Board::isPathClear(Position<> startPos, Position<> endPos) const {
 
 
 
-bool Board::placePiece(std::unique_ptr<Piece> piece, Position<> pos) {
+bool Board::placePiece(Square piece, Position<> pos) {
     if (!isOnBoard(pos)) return false;
 
     // A tömb a bal felső sarokban kezdi az indexelést, míg a sakk szabályai a bal alsó sarokban
@@ -73,38 +74,33 @@ bool Board::placePiece(std::unique_ptr<Piece> piece, Position<> pos) {
     return true;
 }
 
-Position<> Board::findKing(Color c) {
-    for (int y = 0; y < 8; y++) {
-        for (int x = 0; x < 8; x++) {
-            Position<> pos(x, y);
-            Piece* p = getPiece(pos);
-            
-            if (p != nullptr && p->getColor() == c && p->isKing()) {
-                return pos;
+std::optional<Position<>> Board::findKing(Color c) {
+    for (int x = 0; x < BOARD_SIZE; x++) {
+        for (int y = 0; y < BOARD_SIZE; y++) {
+            Piece* p = getPiece({x, y});
+            if (p && p->isKing() && p->getColor() == c) {
+                return Position<>{x, y};
             }
         }
     }
-
-    return Position<>(-1, -1);
+    return std::nullopt;
 }
 
 bool Board::isCheck(Color c) {
-    Position<> kingPos = findKing(c);
+    Position<> kingPos = findKing(c).value_or(Position<>{-1,-1});
     if (!kingPos.isValid()) return false;
-
-    Piece* kingPiece = getPiece(kingPos);
 
     for (int y = 0; y < 8; y++) {
         for (int x = 0; x < 8; x++) {
             Position<> attackerPos(x, y);
             Piece* attacker = getPiece(attackerPos);
 
-            if (attacker && attacker->getColor() != c) {
-                if (attacker->isValidMove(attackerPos, kingPos, kingPiece)) {
-                    if (attacker->canJump() || isPathClear(attackerPos, kingPos)) {
-                        return true;
-                    }
-                }
+            if (attacker && 
+                attacker->getColor() != c && 
+                attacker->isValidMove(attackerPos, kingPos, getPiece(kingPos)) &&
+                (attacker->canJump() || isPathClear(attackerPos, kingPos))) 
+            {
+                return true;
             }
         }
     }
@@ -117,7 +113,7 @@ bool Board::hasLegalMoves(Color c) {
             Position<> startPos(startX, startY);
             Piece* p = getPiece(startPos);
 
-            if (p == nullptr || p->getColor() != c) continue;
+            if (!p || p->getColor() != c) continue;
 
             for (int endY = 7; endY >= 0; endY--) {
                 for (int endX = 0; endX < 8; endX++) {
@@ -126,14 +122,11 @@ bool Board::hasLegalMoves(Color c) {
 
                     if (target && target->getColor() == c) continue;
 
-                    if (!p->isValidMove(startPos, endPos, target)) continue;
-                    if (!p->canJump() && !isPathClear(startPos, endPos)) continue;
-
-                    Board clonedBoard(*this);
-                    clonedBoard.movePiece(startPos, endPos);
-
-                    if (!clonedBoard.isCheck(c)) {
-                        return true;
+                    if (p->isValidMove(startPos, endPos, target) && 
+                    (p->canJump() || isPathClear(startPos, endPos))) {
+                        Board clonedBoard(*this);
+                        clonedBoard.movePiece(startPos, endPos);
+                        if (!clonedBoard.isCheck(c)) return true;
                     }
                 }
             }
@@ -150,7 +143,7 @@ bool Board::isStaleMate(Color c) {
     return !isCheck(c) && !hasLegalMoves(c);
 }
 
-Position<> Board::findStartSquare(char pieceType, bool isWhiteToMove, Position<> endPos, char fileDisambiguation, char rankDisambiguation) {
+std::optional<Position<>> Board::findStartSquare(char pieceType, bool isWhiteToMove, Position<> endPos, char fileDisambiguation, char rankDisambiguation) {
     std::vector<Position<>> candidates;
 
     for (int x = 0; x < 8; x++) {
@@ -175,47 +168,48 @@ Position<> Board::findStartSquare(char pieceType, bool isWhiteToMove, Position<>
     if (candidates.size() == 1) {
         return candidates[0];
     } else if (candidates.size() > 1) {
-        std::cerr << "Hiba: Nem lehet eldönteni a PGN alapján, hogy melyik a helyes lépés! Lehet, hogy hibás?" << std::endl;
-        return Position<>{-1, -1};
+        return std::nullopt;
     } else {
-        std::cerr << "Hiba: Nem található olyan bábu, amellyel megtehető ez a lépés!" << std::endl;
-        return Position<>{-1, -1};
+        return std::nullopt;
     }
 
 }
 
 void Board::clearBoard() {
-    for (int y = 0; y < 8; y++) {
-        for (int x = 0; x < 8; x++) {
-            board[x][y].reset();
+    for (auto& row : board) {
+        for (auto& square : row) {
+            square.reset();
         }
     }
 
     turn = Color::WHITE;
-    canWhiteCastleKingside = false;
-    canWhiteCastleQueenside = false;
-    canBlackCastleKingside = false;
-    canBlackCastleQueenside = false;
-    enPassantTarget = Position<>{-1, -1};
+    canWhiteCastleKingside = canWhiteCastleQueenside = false;
+    canBlackCastleKingside = canBlackCastleQueenside = false;
+    enPassantTarget.reset();
     halfMoveClock = 0;
     fullMoveNumber = 1;
     whiteCaptured.clear();
     blackCaptured.clear();
 }
 
-bool Board::loadFromFEN(const std::string& fen) {
+bool Board::loadFromFEN(std::string_view fen) {
+    std::string fenStr(fen);
+    std::smatch match;
+
+    if (!std::regex_match(fenStr, match, FEN_REGEX)) return false;
+
     clearBoard();
-    std::stringstream ss(fen);
 
-    std::string fullFENString = ss.str();
+    std::string_view placement   { &*match[1].first, static_cast<size_t>(match[1].length()) };
+    std::string_view activeColor { &*match[2].first, static_cast<size_t>(match[2].length()) };
+    std::string castling { &*match[3].first, static_cast<size_t>(match[3].length()) };
+    std::string enPassant { &*match[4].first, static_cast<size_t>(match[4].length()) };
 
-    if (!std::regex_match(fullFENString, FEN_REGEX)) return false;
+    int halfMoveClock = 0;
+    int fullMoveNumber = 1;
 
-    std::string placement, activeColor, castling, enPassant;
-    int halfMoveClock = 0, fullMoveNumber = 1;
-
-    // Mivel a FEN-ben szóközökkel vannak elválasztva a releváns blokkok ezért a stringstream használata megkönnyíti a feldolgozást
-    ss >> placement >> activeColor >> castling >> enPassant >> halfMoveClock >> fullMoveNumber;
+    std::from_chars(&*match[5].first, &*match[5].second, halfMoveClock);
+    std::from_chars(&*match[6].first, &*match[6].second, fullMoveNumber);
 
     int x = 0;
     int y = 7;
@@ -231,20 +225,21 @@ bool Board::loadFromFEN(const std::string& fen) {
         } else {
             Color color = std::isupper(c) ? Color::WHITE : Color::BLACK;
             char type = std::tolower(c);
-            Piece* p = nullptr;
+            
+            Square Piece = nullptr;
             
             switch (type) {
-                case 'r' : p = new Rook(color); break;
-                case 'n' : p = new Knight(color); break;
-                case 'b' : p = new Bishop(color); break;
-                case 'p' : p = new Pawn(color); break;
-                case 'q' : p = new Queen(color); break;
-                case 'k' : p = new King(color); break;
+                case 'r' : Piece = std::make_unique<Rook>(color); break;
+                case 'n' : Piece = std::make_unique<Knight>(color); break;
+                case 'b' : Piece = std::make_unique<Bishop>(color); break;
+                case 'p' : Piece = std::make_unique<Pawn>(color); break;
+                case 'q' : Piece = std::make_unique<Queen>(color); break;
+                case 'k' : Piece = std::make_unique<King>(color); break;
             }
 
-            if (p != nullptr) {
-                placePiece(std::unique_ptr<Piece>(p), Position<>(x, y));
-                x++;
+            if (Piece) {
+                if (placePiece(std::move(Piece), Position<>(x, y))) x++;
+                else return false;
             }
         }
 
@@ -278,71 +273,66 @@ bool Board::loadFromFEN(const std::string& fen) {
 }
 
 std::string Board::generateFEN() const {
-    std::stringstream fen;
+    std::string fen; //  A hivatalos FEN sztringek elméletben maximum 90 hosszúak lehetnek
+    fen.reserve(100); //  Source: https://chess.stackexchange.com/questions/30004/longest-possible-fen
 
-    // 1. Piece placement
     for (int arrayY = 0; arrayY < BOARD_SIZE; ++arrayY) {
         int emptyCount = 0;
 
-        for (int x = 0; x < BOARD_SIZE; ++x) {
-            const Piece* p = board[x][arrayY].get();
+        for (const auto& column : board) {
+            const Piece* p = column[arrayY].get();
 
             if (!p) {
                 emptyCount++;
             } else {
                 if (emptyCount > 0) {
-                    fen << emptyCount;
+                    fen += std::to_string(emptyCount);
                     emptyCount = 0;
                 }
                 char type = p->getPieceType();
-
-                if (p->getColor() == Color::WHITE) {
-                    fen << (char)std::toupper(static_cast<unsigned char>(type));
+                if (p->isWhite()) {
+                    fen += static_cast<char>(std::toupper(static_cast<unsigned char>(type)));
                 } else {
-                    fen << (char)std::tolower(static_cast<unsigned char>(type));
+                    fen += static_cast<char>(std::tolower(static_cast<unsigned char>(type)));
                 }
             }
         }
 
         if (emptyCount > 0) {
-            fen << emptyCount;
+            fen += std::to_string(emptyCount);
         }
 
         if (arrayY < BOARD_SIZE - 1) {
-            fen << '/';
+            fen += '/';
         }
     
     }
 
-    // 2. Turn
-    fen << " " << (turn == Color::WHITE ? "w" : "b");
+    fen += (turn == Color::WHITE ? " w " : " b ");
    
-    // 3. Castling
-    fen << " ";
-    bool hasCastling = false;
-    if (canWhiteCastleKingside)  { fen << 'K'; hasCastling = true; }
-    if (canWhiteCastleQueenside) { fen << 'Q'; hasCastling = true; }
-    if (canBlackCastleKingside)  { fen << 'k'; hasCastling = true; }
-    if (canBlackCastleQueenside) { fen << 'q'; hasCastling = true; }
+    size_t castlingStart = fen.size();
+    if (canWhiteCastleKingside)  { fen += 'K'; }
+    if (canWhiteCastleQueenside) { fen += 'Q'; }
+    if (canBlackCastleKingside)  { fen += 'k'; }
+    if (canBlackCastleQueenside) { fen += 'q'; }
     
-    if (!hasCastling) {
-        fen << '-';
+    if (fen.size() == castlingStart) {
+        fen += '-';
     }
 
-    // 4. En Passant target
-    fen << " ";
-    if (enPassantTarget.x == -1 || enPassantTarget.y == -1) {
-        fen << '-';
+    fen += ' ';
+    if (!enPassantTarget) {
+        fen += '-';
     } else {
-        fen << static_cast<char>('a' + enPassantTarget.x);
-        fen << static_cast<char>('1' + enPassantTarget.y);
+        fen += static_cast<char>('a' + enPassantTarget->x);
+        fen += static_cast<char>('1' + enPassantTarget->y);
     }
 
-    // 5. Halfmove clock
-    fen << " " << halfMoveClock;
 
-    // 6. Fullmove number
-    fen << " " << fullMoveNumber;
+    fen += ' ';
+    fen += std::to_string(halfMoveClock);
+    fen += ' ';
+    fen += std::to_string(fullMoveNumber);
 
-    return fen.str();
+    return fen;
 }

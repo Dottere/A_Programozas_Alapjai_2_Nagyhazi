@@ -73,7 +73,7 @@ std::pair<PGNMetadata, std::vector<Move>> PGNHandler::parseFile(std::string file
         std::string sanMove = i->str();
 
         // 1. make move object from san repr
-        Move currentMove = sanToMoveObj(sanMove, board, isWhiteToMove);
+        auto currentMove = sanToMoveObj(sanMove, board, isWhiteToMove).value_or(Move());
 
         if (currentMove.startPos.x == -1) {
             std::cerr << "Hiba: Hibás PGN lépés: " << sanMove << ". Lehet, hogy hibás a PGN?" << std::endl;
@@ -190,7 +190,7 @@ std::string PGNHandler::generatePGN(const PGNMetadata& metadata, const std::vect
     return pgnString;
 }
 
-Move PGNHandler::sanToMoveObj(std::string sanMove, Board& board, bool isWhiteToMove) {
+std::optional<Move> PGNHandler::sanToMoveObj(std::string sanMove, Board& board, bool isWhiteToMove) {
     bool isCapture = false;
     bool isCastle = false;
     bool isEnPassant = false;
@@ -263,8 +263,13 @@ Move PGNHandler::sanToMoveObj(std::string sanMove, Board& board, bool isWhiteToM
         fileDisambiguity = sanMove[0];
         rankDisambiguity = sanMove[1]; 
     }
-
-    startPos = board.findStartSquare(movedPiece, isWhiteToMove, endPos, fileDisambiguity, rankDisambiguity);
+    
+    if (auto startPos = board.findStartSquare(movedPiece, isWhiteToMove, endPos, fileDisambiguity, rankDisambiguity)) {
+        
+    } else {
+        return std::nullopt;
+    }
+    
 
     if (isCapture) {
         capturedPiecePtr = board.getPiece(endPos);

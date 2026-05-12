@@ -7,10 +7,11 @@
 
 #include <string>
 #include <vector>
+#include <optional>
 
 class PGNHandler {
 
-    Move sanToMoveObj(std::string sanMove, Board& board, bool isWhiteToMove);
+    std::optional<Move> sanToMoveObj(std::string sanMove, Board& board, bool isWhiteToMove);
 
     char getDisambiguation(Board& board, const Move& m, bool isWhiteToMove);
 

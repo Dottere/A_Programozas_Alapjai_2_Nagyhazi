@@ -43,10 +43,9 @@ std::ostream& operator<<(std::ostream& os, const Position<T>& p) {
 }
 
 struct Move {
-
-    Move(Position<> start, Position<> end, bool isCapture, 
-    bool isCastle, bool isEnPassant, bool isCheck, bool isCheckMate,
-    char movedPiece, char promotedTo, Piece* capturedPiece);
+    Move(Position<> start = {-1, -1}, Position<> end = {-1, -1}, bool isCapture = false, 
+    bool isCastle = false, bool isEnPassant = false, bool isCheck = false, bool isCheckMate = false,
+    char movedPiece = '\0', char promotedTo = '\0', Piece* capturedPiece = nullptr);
 
     Position<> startPos;
     Position<> endPos;
