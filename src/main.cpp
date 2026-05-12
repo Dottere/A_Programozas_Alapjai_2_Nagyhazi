@@ -3,6 +3,7 @@
 #include "gamemaster.hpp"
 #include "pgnhandler.hpp"
 #include "constants.hpp"
+#include "utility.hpp"
 
 #include <vector>
 #include <string>
@@ -10,6 +11,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <chrono>
+#include <charconv>
 
 namespace {
 
@@ -27,11 +29,11 @@ bool parseArguments(int argc, char* argv[], std::string& fenStr, std::string& pg
     std::vector<std::string_view> args(argv, argv + argc);
 
     for (size_t i = 1; i < args.size(); i++) {
-        if (args[i] == "--help" || args[i] == "-h") {
+        if (is_any_of(args[i], "--help", "-h")) {
             std::cout << HELP_STRING << std::endl;
             return false;
         }
-        else if (args[i] == "--fen" || args[i] == "-f") {
+        else if (is_any_of(args[i], "--fen", "-f")) {
             if (++i != args.size())
                 fenStr = std::string(args[i]);
             else {
@@ -39,7 +41,7 @@ bool parseArguments(int argc, char* argv[], std::string& fenStr, std::string& pg
                 return false;
             }
         }
-        else if (args[i] == "--pgn" || args[i] == "-p") {
+        else if (is_any_of(args[i], "--pgn", "-p")) {
             if (++i != args.size()) {
                 pgnFilePath = std::string(args[i]);
             } else {
@@ -47,11 +49,26 @@ bool parseArguments(int argc, char* argv[], std::string& fenStr, std::string& pg
                 return false;
             }
         }
-        else if (args[i] == "--time-control" || args[i] == "-t") {
-            if (++i != args.size() && (args[i] == "1" || args[i] == "5" || args[i] == "10" || args[i] == "60")) {
-                timeControl = std::string(args[i]);
+        else if (args[i].compare(0, 2, "-t") == 0 || args[i] == "--time-control") {
+            std::string_view value;
+
+            if (args[i] == "--time-control" || args[i] == "-t") {
+                if (++i < args.size()) {
+                    value = args[i];
+                } else {
+                    std::cerr << "Nincs megadva időkorlát!" << std::endl;
+                    return false;
+                }
             } else {
-                std::cerr << "Helytelen időformátum! Válassz ezek közül: <1|5|10|60>" << std::endl;
+                value = args[i].substr(2);
+            }
+            
+            value = trim(value); 
+            
+            if (is_any_of(value, "1", "5", "10", "60")) {
+                timeControl = std::string(value);
+            } else {
+                std::cerr << "Helytelen időformátum: " << value << std::endl;
                 return false;
             }
         }

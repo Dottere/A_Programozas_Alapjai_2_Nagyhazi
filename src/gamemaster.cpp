@@ -30,6 +30,36 @@ void GameMaster::gameLoop(PGNMetadata& metadata) {
                 continue;
             }
 
+            if (userInput == "forfeit" || userInput == "ff") {
+                std::cout << "Biztosan fel akarod adni? (i/n): ";
+                char ans;
+                std::cin >> ans;
+                if (std::tolower(ans) != 'i') continue;
+
+                std::string winner = board.isWhiteToMove() ? "Fehér" : "Sötét";
+                std::cout << winner << " feladta." << std::endl;
+                metadata.result = board.isWhiteToMove() ? "0-1" : "1-0";
+                break;
+            }
+
+            if (userInput == "draw") {
+                board.nextTurn();
+                renderer.display(whiteTimeRemaining, blackTimeRemaining, pointsWhite, pointsBlack);
+                std::cout << "Elfogadod a döntetlent? (i/n): ";
+                char ans;
+                std::cin >> ans;
+                if (std::tolower(ans) == 'i') {
+                    std::cout << "A játék döntetlen." << std::endl;
+                    metadata.result = "1/2-1/2";
+                    break;
+                } else if (std::tolower(ans) == 'n') {
+                    board.nextTurn();
+                    continue;
+                } else {
+                    continue;
+                }
+            }
+
             if (userInput == "o-o" || userInput == "0-0") {
                 userInput = board.isWhiteToMove() ? "e1g1" : "e8g8";
             } else if (userInput == "o-o-o" || userInput == "0-0-0") {
@@ -90,7 +120,7 @@ void GameMaster::gameLoop(PGNMetadata& metadata) {
 
             // 6. game over
             if (board.isCheckMate(board.getTurn())) {
-                std::string winner = board.isWhiteToMove() ? "Fekete" : "Fehér";
+                std::string winner = board.isWhiteToMove() ? "Sötét" : "Fehér";
                 std::cout << "Sakkmatt! " << winner << " nyert!" << std::endl;
                 metadata.result = board.isWhiteToMove() ? "0-1" : "1-0";
                 break;
@@ -272,7 +302,7 @@ bool GameMaster::processMove(Position<> startPos, Position<> endPos, char promot
 
 // private
 bool GameMaster::isValidInput(std::string userInput) {
-    static const std::regex pattern("^([a-h][1-8][a-h][1-8][qrbn]?|o-o-o|0-0-0|o-o|0-0)$");
+    static const std::regex pattern("^([a-h][1-8][a-h][1-8][qrbn]?|o-o-o|0-0-0|o-o|0-0|forfeit|draw|ff)$");
     return std::regex_match(userInput, pattern);
 }
 
