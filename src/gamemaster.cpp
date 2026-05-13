@@ -283,11 +283,13 @@ bool GameMaster::processMove(Position<> startPos, Position<> endPos, char promot
                 moveHistory.emplace_back(
                     startPos,
                     endPos,
-                    isCapture,
-                    isCastle,
-                    isEnPassant,
-                    isCheckMove,
-                    isCheckMateMove,
+                    Move::Flags {
+                        .isCapture = isCapture,
+                        .isCastle = isCastle,
+                        .isEnPassant = isEnPassant,
+                        .isCheck = isCheckMove,
+                        .isCheckMate = isCheckMateMove,
+                    },
                     movedPieceChar,
                     promotedTo,
                     capturedPiece
@@ -343,7 +345,7 @@ void GameMaster::replayPGN(const std::string& pgnFilePath) {
             const auto& m = moveHistory[currentMoveIndex];
 
             board.movePiece(m.startPos, m.endPos);
-            if (m.isCastle) {
+            if (m.flags.isCastle) {
                 using namespace CASTLING_POSITION_CONSTANTS;
                 if (m.endPos.x == KING_DEST_KINGSIDE_X) {
                     board.movePiece(Position<>(ROOK_START_KINGSIDE_X, m.startPos.y), Position<>(ROOK_DEST_KINGSIDE_X, m.startPos.y));
@@ -351,7 +353,7 @@ void GameMaster::replayPGN(const std::string& pgnFilePath) {
                 board.movePiece(Position<>(ROOK_START_QUEENSIDE_X, m.startPos.y), Position<>(ROOK_DEST_QUEENSIDE_X, m.startPos.y));
                 }
             }
-            else if (m.isEnPassant) {
+            else if (m.flags.isEnPassant) {
                 board.removePiece(Position<>(m.endPos.x, m.startPos.y));
             }
             else if (m.promotedTo != '\0') {

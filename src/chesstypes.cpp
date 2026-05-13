@@ -2,20 +2,13 @@
 
 #include "piece.hpp"
 
-Move::Move(Position<> start, Position<> end, bool isCapture, 
-    bool isCastle, bool isEnPassant, bool isCheck, bool isCheckMate,
+Move::Move(Position<> start, Position<> end, Flags f,
     char movedPiece, char promotedTo, Piece* capturedPiece) : 
     startPos(start), 
     endPos(end), 
-    isCapture(isCapture),
-    isCastle(isCastle), 
-    isEnPassant(isEnPassant), 
-    isCheck(isCheck), 
-    isCheckMate(isCheckMate),
-    movedPiece(movedPiece), 
-    promotedTo(promotedTo),
     capturedPieceType('\0'),
     capturedPieceColor(Color::NONE) {
+        flags = {0};
 
         if (capturedPiece) {
             capturedPieceType = capturedPiece->getPieceType();
@@ -24,9 +17,9 @@ Move::Move(Position<> start, Position<> end, bool isCapture,
 }
 
 std::ostream& operator<<(std::ostream& os, const Move& move) {
-    os << "Start: " << move.startPos << " End: " << move.endPos << " isCapture: " << move.isCapture 
-    << " isCastle: " << move.isCastle << " isEnPassant: " << move.isEnPassant << " IsCheck: "<< move.isCheck
-    << " isCheckMate: " << move.isCheckMate << " movedPiece: " << move.movedPiece 
+    os << "Start: " << move.startPos << " End: " << move.endPos << " isCapture: " << move.flags.isCapture 
+    << " isCastle: " << move.flags.isCastle << " isEnPassant: " << move.flags.isEnPassant << " IsCheck: "<< move.flags.isCheck
+    << " isCheckMate: " << move.flags.isCheckMate << " movedPiece: " << move.movedPiece 
     << " promotedTo: " << move.promotedTo << " CapturedPieceType: "
     << move.capturedPieceType << " capturedPieceColor: " << move.capturedPieceColor;
 

@@ -2,6 +2,7 @@
 #define CHESSTYPES_HPP
 
 #include <iostream>
+#include <cstdint>
 #include <string>
 
 class Piece;
@@ -43,24 +44,27 @@ std::ostream& operator<<(std::ostream& os, const Position<T>& p) {
 }
 
 struct Move {
-    Move(Position<> start = {-1, -1}, Position<> end = {-1, -1}, bool isCapture = false, 
-    bool isCastle = false, bool isEnPassant = false, bool isCheck = false, bool isCheckMate = false,
-    char movedPiece = '\0', char promotedTo = '\0', Piece* capturedPiece = nullptr);
 
     Position<> startPos;
     Position<> endPos;
-
-    bool isCapture;
-    bool isCastle;
-    bool isEnPassant;
-    bool isCheck;
-    bool isCheckMate;
+    
+    struct Flags {
+        uint8_t isCapture      : 1;         
+        uint8_t isCastle       : 1;
+        uint8_t isEnPassant    : 1;
+        uint8_t isCheck        : 1;
+        uint8_t isCheckMate    : 1;
+        uint8_t reserved       : 2;
+    } flags;
 
     char movedPiece;
     char promotedTo;
 
     char capturedPieceType; // 'n', 'p', 'r'... etc
     Color capturedPieceColor;
+
+    Move(Position<> start = {-1,-1}, Position<> end={-1,-1}, Flags f = {0},
+    char movedPiece = '\0', char promotedTo = '\0', Piece* capturedPiece = nullptr);
 };
 std::ostream& operator<<(std::ostream& os, const Move& move);
 

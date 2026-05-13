@@ -84,7 +84,7 @@ std::pair<PGNMetadata, std::vector<Move>> PGNHandler::parseFile(std::string file
         board.movePiece(currentMove.startPos, currentMove.endPos);
 
 
-        if (currentMove.isCastle) {
+        if (currentMove.flags.isCastle) {
             if (currentMove.endPos.x == 6) {
                 board.movePiece(Position<>(7, currentMove.startPos.y), Position<>(5, currentMove.startPos.y));
             } else {
@@ -131,7 +131,7 @@ std::string PGNHandler::generatePGN(const PGNMetadata& metadata, const std::vect
 
         std::string san = "";
 
-        if (m.isCastle) {
+        if (m.flags.isCastle) {
             san = (m.endPos.x == 6) ? "O-O" : "O-O-O";
         } 
         else {
@@ -141,11 +141,11 @@ std::string PGNHandler::generatePGN(const PGNMetadata& metadata, const std::vect
                 char disambig = getDisambiguation(simBoard, m, isWhiteToMove);
                 if (disambig != '\0') san += disambig;
                 
-            } else if (m.isCapture || m.isEnPassant) {
+            } else if (m.flags.isCapture || m.flags.isEnPassant) {
                 san += (char)('a' + m.startPos.x);
             }
 
-            if (m.isCapture || m.isEnPassant) {
+            if (m.flags.isCapture || m.flags.isEnPassant) {
                 san += "x";
             }
 
@@ -158,21 +158,21 @@ std::string PGNHandler::generatePGN(const PGNMetadata& metadata, const std::vect
             }
         }
 
-        if (m.isCheckMate) {
+        if (m.flags.isCheckMate) {
             san += "#";
-        } else if (m.isCheck) {
+        } else if (m.flags.isCheck) {
             san += "+";
         }
 
         pgnString += san + " ";
         
-        if (m.isEnPassant) {
+        if (m.flags.isEnPassant) {
              simBoard.removePiece(Position<>(m.endPos.x, m.startPos.y));
         }
         
         simBoard.movePiece(m.startPos, m.endPos);
         
-        if (m.isCastle) {
+        if (m.flags.isCastle) {
             if (m.endPos.x == 6) { // Kingside
                 simBoard.movePiece(Position<>(7, m.startPos.y), Position<>(5, m.startPos.y));
             } else { // Queenside
@@ -225,7 +225,16 @@ std::optional<Move> PGNHandler::sanToMoveObj(std::string sanMove, Board& board, 
             endPos = Position<>(2, rank); // queenside
         }
 
-        return Move(startPos, endPos, isCapture, isCastle, isEnPassant, isCheck, isCheckMate, movedPiece, promotedTo, nullptr);
+        
+        Move::Flags flags{
+            .isCapture = isCapture,
+            .isCastle = isCastle,
+            .isEnPassant = isEnPassant,
+            .isCheck = isCheck,
+            .isCheckMate = isCheckMate,
+        };
+
+        return Move{startPos, endPos, flags, movedPiece, promotedTo, nullptr};
     }
 
     size_t equalPos = sanMove.find('=');
@@ -281,7 +290,17 @@ std::optional<Move> PGNHandler::sanToMoveObj(std::string sanMove, Board& board, 
         }
     }
 
-    return Move(startPos, endPos, isCapture, isCastle, isEnPassant, isCheck, isCheckMate, movedPiece, promotedTo, capturedPiecePtr);
+    
+    Move::Flags flags{
+        .isCapture = isCapture,
+        .isCastle = isCastle,
+        .isEnPassant = isEnPassant,
+        .isCheck = isCheck,
+        .isCheckMate = isCheckMate,
+    };
+
+
+    return Move{startPos, endPos, flags, movedPiece, promotedTo, capturedPiecePtr};
 }   
 
 char PGNHandler::getDisambiguation(Board& board, const Move& m, bool isWhiteToMove) {
