@@ -46,8 +46,6 @@ class Board {
     int halfMoveClock = 0; // 50 lépéses szabály
     int fullMoveNumber = 1; // Teljes lépésszám
 
-    [[nodiscard]] std::optional<Position<>> findKing(Color c);
-
     // handle coordinate translation in place
     [[nodiscard]] Square& at(Position<> pos) { return board[pos.x][7 - pos.y]; }
 

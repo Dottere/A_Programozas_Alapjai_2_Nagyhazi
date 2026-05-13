@@ -4,8 +4,6 @@
 
 #include <cmath>
 #include <vector>
-#include <iostream> 
-#include <sstream>
 #include <cctype>
 #include <regex>
 #include <charconv>
@@ -13,6 +11,18 @@
 
 namespace {
     const std::regex FEN_REGEX(R"(^([prnbqkPRNBQK1-8]+(?:/[prnbqkPRNBQK1-8]+){7})\s+([wb])\s+(-|[KQkq]{1,4})\s+(-|[a-h][36])\s+(\d+)\s+([1-9]\d*)$)");
+
+    std::optional<Position<>> findKing(const Board& b, Color c) {
+        for (int x = 0; x < BOARD_SIZE; x++) {
+            for (int y = 0; y < BOARD_SIZE; y++) {
+                const Piece* p = b.getPiece({x, y});
+                if (p && p->isKing() && p->getColor() == c) {
+                    return Position<>{x, y};
+                }
+            }
+        }
+        return std::nullopt;
+    }
 }
 
 Board::Board(const Board& b) {
@@ -81,20 +91,8 @@ bool Board::placePiece(Square piece, Position<> pos) {
     return true;
 }
 
-std::optional<Position<>> Board::findKing(Color c) {
-    for (int x = 0; x < BOARD_SIZE; x++) {
-        for (int y = 0; y < BOARD_SIZE; y++) {
-            Piece* p = getPiece({x, y});
-            if (p && p->isKing() && p->getColor() == c) {
-                return Position<>{x, y};
-            }
-        }
-    }
-    return std::nullopt;
-}
-
 bool Board::isCheck(Color c) {
-    Position<> kingPos = findKing(c).value_or(Position<>{-1,-1});
+    Position<> kingPos = findKing(*this, c).value_or(Position<>{-1,-1});
     if (!kingPos.isValid()) return false;
 
     for (int y = 0; y < 8; y++) {
