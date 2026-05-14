@@ -149,7 +149,13 @@ namespace
             }
         }
 
-        Move::Flags flags{isCapture, isCastle, isEnPassant, isCheck, isCheckMate};
+        Move::Flags flags{
+            .isCapture = isCapture,
+            .isCastle = isCastle,
+            .isEnPassant = isEnPassant,
+            .isCheck = isCheck,
+            .isCheckMate = isCheckMate
+        };
 
         return Move{startPos, endPos, flags, movedPiece, promotedTo, capturedPiecePtr};
     }

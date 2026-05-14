@@ -5,11 +5,12 @@
 Move::Move(Position<> start, Position<> end, Flags f,
            char movedPiece, char promotedTo, Piece *capturedPiece) : startPos(start),
                                                                      endPos(end),
+                                                                     flags(f),
+                                                                     movedPiece(movedPiece),
+                                                                     promotedTo(promotedTo),
                                                                      capturedPieceType('\0'),
                                                                      capturedPieceColor(Color::NONE)
 {
-    flags = {0};
-
     if (capturedPiece)
     {
         capturedPieceType = capturedPiece->getPieceType();
