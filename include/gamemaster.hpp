@@ -7,16 +7,11 @@
 
 #include <vector>
 #include <string>
-#include <chrono>
 
 class GameMaster
 {
     Board &board;
     Renderer &renderer;
-
-    double whiteTimeRemaining; // seconds;
-    double blackTimeRemaining;
-    std::chrono::time_point<std::chrono::steady_clock> turnStartTime;
 
     int pointsWhite = 0;
     int pointsBlack = 0;
@@ -30,24 +25,9 @@ class GameMaster
     void manualPlay(const std::string &fenStr);
 
 public:
-    GameMaster(Board &board, Renderer &renderer, const std::string &timeControl)
+    GameMaster(Board &board, Renderer &renderer)
         : board(board),
-          renderer(renderer)
-    {
-        double seconds = 999999;
-
-        if (timeControl.size() == 1)
-        {
-            seconds = static_cast<double>((timeControl[0] - '0') * 60);
-        }
-        else if (timeControl.size() == 2)
-        {
-            seconds = static_cast<double>((((timeControl[0] - '0') * 10) + (timeControl[1] - '0')) * 60);
-        }
-
-        whiteTimeRemaining = seconds;
-        blackTimeRemaining = seconds;
-    }
+          renderer(renderer) {}
 
     void run(const std::string &fenStr, const std::string &pgnFilePath);
 };

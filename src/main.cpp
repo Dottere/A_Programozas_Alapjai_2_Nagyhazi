@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
     
     std::string fenStr = std::string(DEFAULT_FEN);
     std::string pgnFilePath;
-    std::string timeControl;
+    std::string timeControl; // unused for now
 
     if (!parseArguments(argc, argv, fenStr, pgnFilePath, timeControl))
     {
@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
     }
 
     Renderer renderer(board);
-    GameMaster gamemaster(board, renderer, timeControl);
+    GameMaster gamemaster(board, renderer);
 
     gamemaster.run(fenStr, pgnFilePath);
 

@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-void Renderer::display(double whiteTime, double blackTime, int whitePoints, int blackPoints)
+void Renderer::display(int whitePoints, int blackPoints)
 {
     // clear the screen and reset cursor
     std::cout << "\033[2J\033[H" << '\n';
@@ -93,13 +93,6 @@ void Renderer::display(double whiteTime, double blackTime, int whitePoints, int 
             if (blackPoints > whitePoints)
             {
                 std::cout << P1_COLOR << " (+" << (blackPoints - whitePoints) << ")" << RESET;
-            }
-        }
-        else if (row == 1)
-        {
-            if (whiteTime <= 999.0)
-            {
-                std::cout << padding << "[" << formatTime(whiteTime) << " : " << formatTime(blackTime) << "]";
             }
         }
 

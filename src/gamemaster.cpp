@@ -7,10 +7,8 @@
 #include <iostream>
 #include <regex>
 #include <limits>
-#include <ctime>
 #include <iomanip>
 #include <fstream>
-#include <chrono>
 
 namespace
 {
@@ -19,10 +17,8 @@ namespace
 
 void GameMaster::gameLoop(PGNMetadata &metadata)
 {
-    turnStartTime = std::chrono::steady_clock::now();
 
     std::string userInput;
-    renderer.display(whiteTimeRemaining, blackTimeRemaining, pointsWhite, pointsBlack);
 
     while (true)
     {
@@ -57,7 +53,7 @@ void GameMaster::gameLoop(PGNMetadata &metadata)
         if (userInput == "draw")
         {
             board.nextTurn();
-            renderer.display(whiteTimeRemaining, blackTimeRemaining, pointsWhite, pointsBlack);
+            renderer.display(pointsWhite, pointsBlack);
             std::cout << "Elfogadod a döntetlent? (i/n): ";
             char ans;
             std::cin >> ans;
@@ -116,8 +112,6 @@ void GameMaster::gameLoop(PGNMetadata &metadata)
                 }
             }
         }
-        // 3. processMove(startPos, endPos)
-        Color actor = board.getTurn();
         bool moveSuccessful = processMove(currentMoveStartPos, currentMoveEndPos, promotedTo);
 
         if (!moveSuccessful)
@@ -126,30 +120,9 @@ void GameMaster::gameLoop(PGNMetadata &metadata)
         }
         else
         {
-            auto turnEndTime = std::chrono::steady_clock::now();
-            double secondsSpent = std::chrono::duration<double>(turnEndTime - turnStartTime).count();
-
-            if (actor == Color::WHITE)
-            {
-                whiteTimeRemaining -= secondsSpent;
-            }
-            else
-            {
-                blackTimeRemaining -= secondsSpent;
-            }
-
-            if (whiteTimeRemaining <= 0 || blackTimeRemaining <= 0)
-            {
-                std::cout << "Időlejárat! A játék véget ért." << std::endl;
-                break;
-            }
-
-            // 4. change turn
             board.nextTurn();
-            turnStartTime = std::chrono::steady_clock::now();
         }
-        // 5. display
-        renderer.display(whiteTimeRemaining, blackTimeRemaining, pointsWhite, pointsBlack);
+        renderer.display(pointsWhite, pointsBlack);
 
         // 6. game over
         if (board.isCheckMate(board.getTurn()))
@@ -391,7 +364,7 @@ void GameMaster::replayPGN(const std::string &pgnFilePath)
     board.loadFromFEN(startingFen);
     historyStates.push_back(board.generateFEN());
 
-    renderer.display(whiteTimeRemaining, blackTimeRemaining, pointsWhite, pointsBlack);
+    renderer.display(pointsWhite, pointsBlack);
 
     bool replaying = true;
     while (replaying)
@@ -437,7 +410,7 @@ void GameMaster::replayPGN(const std::string &pgnFilePath)
                 historyStates.push_back(board.generateFEN());
             }
 
-            renderer.display(whiteTimeRemaining, blackTimeRemaining, pointsWhite, pointsBlack);
+            renderer.display(pointsWhite, pointsBlack);
         }
         else if (input == 'p' && currentMoveIndex > 0)
         {
@@ -447,7 +420,7 @@ void GameMaster::replayPGN(const std::string &pgnFilePath)
 
             board.loadFromFEN(historyStates[currentMoveIndex]);
 
-            renderer.display(whiteTimeRemaining, blackTimeRemaining, pointsWhite, pointsBlack);
+            renderer.display(pointsWhite, pointsBlack);
         }
     }
 }
@@ -461,6 +434,8 @@ void GameMaster::manualPlay(const std::string &fenStr)
         metadata.setup = 1;
         metadata.fen = fenStr;
     }
+
+    renderer.display(pointsWhite, pointsBlack);
 
     gameLoop(metadata);
 
