@@ -10,13 +10,10 @@
 #include <string>
 #include <chrono>
 
-class PGNHandler;
-
 class GameMaster
 {
     Board &board;
     Renderer &renderer;
-    PGNHandler &pgnhandler;
 
     double whiteTimeRemaining; // seconds;
     double blackTimeRemaining;
@@ -34,10 +31,9 @@ class GameMaster
     void manualPlay(const std::string &fenStr);
 
 public:
-    GameMaster(Board &board, Renderer &renderer, PGNHandler &pgnhandler, const std::string &timeControl)
+    GameMaster(Board &board, Renderer &renderer, const std::string &timeControl)
         : board(board),
-          renderer(renderer),
-          pgnhandler(pgnhandler)
+          renderer(renderer)
     {
         double seconds = 999999;
 

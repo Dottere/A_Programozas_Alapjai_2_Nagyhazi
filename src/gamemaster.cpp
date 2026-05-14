@@ -380,7 +380,7 @@ void GameMaster::run(const std::string &fenStr, const std::string &pgnFilePath)
 
 void GameMaster::replayPGN(const std::string &pgnFilePath)
 {
-    auto parsed = pgnhandler.parseFile(pgnFilePath, board);
+    auto parsed = PGNHandler::parseFile(pgnFilePath, board);
     auto metadata = parsed.first;
     this->moveHistory = parsed.second;
     std::string startingFen = metadata.fen.empty() ? std::string(DEFAULT_FEN) : metadata.fen;
@@ -509,7 +509,7 @@ void GameMaster::manualPlay(const std::string &fenStr)
         std::ofstream outFile(filename + ".pgn");
         if (outFile.is_open())
         {
-            outFile << pgnhandler.generatePGN(metadata, moveHistory);
+            outFile << PGNHandler::generatePGN(metadata, moveHistory);
             outFile.close();
             std::cout << "A játék sikeresen elmentve a " << filename << ".pgn fájlba!" << std::endl;
         }
