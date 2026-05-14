@@ -1,5 +1,4 @@
-#ifndef GAMEMASTER_HPP
-#define GAMEMASTER_HPP
+#pragma once
 
 #include "board.hpp"
 #include "renderer.hpp"
@@ -52,5 +51,3 @@ public:
 
     void run(const std::string &fenStr, const std::string &pgnFilePath);
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef RENDERER_HPP
-#define RENDERER_HPP
+#pragma once
 
 /*
  * Ez az osztály lesz felelős a grafikus megvalósításért, azért van elválasztva a többitől, hogy ha később
@@ -35,5 +34,3 @@ public:
         return ss.str();
     }
 };
-
-#endif

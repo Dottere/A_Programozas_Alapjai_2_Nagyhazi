@@ -1,5 +1,4 @@
-#ifndef UTILITY_H
-#define UTILITY_H
+#pragma once
 
 template <typename T, typename... Args>
 constexpr bool is_any_of(const T &val, Args &&...args)
@@ -24,5 +23,3 @@ std::string_view trim(std::string_view s)
     auto end = s.find_last_not_of(" \n\r\t");
     return s.substr(start, end - start + 1);
 }
-
-#endif

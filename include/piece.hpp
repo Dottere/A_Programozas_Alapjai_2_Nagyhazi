@@ -1,5 +1,4 @@
-#ifndef PIECE_HPP
-#define PIECE_HPP
+#pragma once
 
 /*
  * Ez a fejlécfájl lesz felelős a bábu ősosztály és az abból származtatott összes többi bábu megvalósításával.
@@ -148,5 +147,3 @@ public:
 protected:
     [[nodiscard]] bool checkGeometry(Position<> startPos, Position<> endPos, const Piece *TargetPiece) const override;
 };
-
-#endif

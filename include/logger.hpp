@@ -1,5 +1,4 @@
-#ifndef LOGGER_H
-#define LOGGER_H
+#pragma once
 
 #include <iostream>
 #include <string>
@@ -35,6 +34,3 @@ private:
     #define LOG_WARNING(msg) Logger::log(Logger::Level::WARNING, __FILE__, __LINE__, msg)
     #define LOG_ERROR(msg) Logger::log(Logger::Level::ERROR, __FILE__, __LINE__, msg)
 #endif
-
-#endif
-

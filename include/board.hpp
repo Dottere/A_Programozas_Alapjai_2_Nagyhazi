@@ -1,5 +1,4 @@
-#ifndef BOARD_HPP
-#define BOARD_HPP
+#pragma once
 
 #include "chesstypes.hpp"
 #include "piece.hpp"
@@ -188,5 +187,3 @@ public:
         }
     }
 };
-
-#endif

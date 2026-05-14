@@ -1,5 +1,4 @@
-#ifndef PGNHANDLER_HPP
-#define PGNHANDLER_HPP
+#pragma once
 
 #include "chesstypes.hpp"
 
@@ -21,5 +20,3 @@ namespace PGNHandler
         const PGNMetadata &metadata,
         const std::vector<Move> &history);
 };
-
-#endif

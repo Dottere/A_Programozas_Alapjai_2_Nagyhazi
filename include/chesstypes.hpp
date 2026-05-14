@@ -1,5 +1,4 @@
-#ifndef CHESSTYPES_HPP
-#define CHESSTYPES_HPP
+#pragma once
 
 #include <iostream>
 #include <cstdint>
@@ -87,5 +86,3 @@ struct PGNMetadata
     std::string setup = "0";
     std::string fen = "";
 };
-
-#endif
