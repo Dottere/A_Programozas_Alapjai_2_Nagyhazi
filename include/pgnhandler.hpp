@@ -10,18 +10,16 @@
 
 class Board;
 
-class PGNHandler
+namespace PGNHandler
 {
-public:
-    [[nodiscard]] static std::pair<PGNMetadata, std::vector<Move>> parseFile(
-        std::filesystem::path filePath,
-        const Board &initialBoard
-    );
 
-    [[nodiscard]] static std::string generatePGN(
+    [[nodiscard]] std::pair<PGNMetadata, std::vector<Move>> parseFile(
+        std::filesystem::path filePath,
+        const Board &initialBoard);
+
+    [[nodiscard]] std::string generatePGN(
         const PGNMetadata &metadata,
-        const std::vector<Move> &history
-    );
+        const std::vector<Move> &history);
 };
 
 #endif
