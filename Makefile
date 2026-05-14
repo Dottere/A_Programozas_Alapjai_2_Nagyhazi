@@ -13,7 +13,7 @@ TEST_OBJ = $(patsubst src/%.cpp, build/test_obj/src/%.o, $(filter-out src/main.c
 TARGET = cli-chess
 TEST_TARGET = run_tests
 
-.PHONY: all clean sanitize test
+.PHONY: all clean sanitize test debug
 
 all: $(TARGET)
 
@@ -30,6 +30,10 @@ clean:
 sanitize: 
 	$(MAKE) clean
 	$(MAKE) all CXXFLAGS="$(CXXFLAGS) -g -fsanitize=address" LDFLAGS="-fsanitize=address"
+
+debug:
+	$(MAKE) clean
+	$(MAKE) all CXXFLAGS="$(CXXFLAGS) -DMDEBUG"
 
 # --- TEST TARGETS ---
 

@@ -8,7 +8,8 @@ inline constexpr std::string_view DEFAULT_FEN =
 
 constexpr int BOARD_SIZE = 8;
 
-namespace CASTLING_POSITION_CONSTANTS {
+namespace CASTLING_POSITION_CONSTANTS
+{
     inline constexpr int KING_DEST_KINGSIDE_X = 6;
     inline constexpr int KING_DEST_QUEENSIDE_X = 2;
     inline constexpr int ROOK_START_KINGSIDE_X = 7;
@@ -17,7 +18,8 @@ namespace CASTLING_POSITION_CONSTANTS {
     inline constexpr int ROOK_DEST_QUEENSIDE_X = 3;
 }
 
-enum class PIECE_VALUES {
+enum class PIECE_VALUES
+{
     PAWN = 1,
     BISHOP = 3,
     KNIGHT = 3,
