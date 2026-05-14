@@ -76,13 +76,13 @@ std::ostream& operator<<(std::ostream &os, const Move &move);
 
 struct PGNMetadata
 {
-    std::string event = "?";
-    std::string site = "?";
-    std::string date = "????.??.??";
-    std::string round = "?";
-    std::string white = "?";
-    std::string black = "?";
-    std::string result = "*"; // "*", "1-0", "0-1", or "1/2-1/2"
-    std::string setup = "0";
+    std::string event = "";
+    std::string site = "";
+    std::string date = "";
+    std::string round = "";
+    std::string white = "";
+    std::string black = "";
+    std::string result = ""; // "*", "1-0", "0-1", or "1/2-1/2"
+    std::string setup = "";
     std::string fen = "";
 };

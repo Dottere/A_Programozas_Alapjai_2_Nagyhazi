@@ -380,7 +380,7 @@ void GameMaster::run(const std::string &fenStr, const std::string &pgnFilePath)
 
 void GameMaster::replayPGN(const std::string &pgnFilePath)
 {
-    auto parsed = PGNHandler::parseFile(pgnFilePath, board);
+    auto parsed = PGNHandler::parseFile(pgnFilePath, board).value_or(std::make_pair(PGNMetadata{}, std::vector<Move>{}));
     auto metadata = parsed.first;
     this->moveHistory = parsed.second;
     std::string startingFen = metadata.fen.empty() ? std::string(DEFAULT_FEN) : metadata.fen;
