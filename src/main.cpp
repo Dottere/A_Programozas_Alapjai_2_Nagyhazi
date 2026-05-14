@@ -13,8 +13,37 @@
 #include <chrono>
 #include <charconv>
 
+#ifdef _WIN32 // input gets garbled on windows terminals so this is here to fix it
+#include <windows.h>
+
+// for older windows sdk
+#ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
+#define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
+#endif
+
+#endif
+
 namespace
 {
+    void setupTerminal() 
+    {
+        #ifdef _WIN32
+            
+                SetConsoleOutputCP(CP_UTF8);
+            
+                HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+                if (hOut != INVALID_HANDLE_VALUE)
+                {
+                    DWORD dwMode = 0;
+                    if (GetConsoleMode(hOut, &dwMode))
+                    {
+                        dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+                        SetConsoleMode(hOut, dwMode);
+                    }
+                }
+            
+        #endif
+    }
 
     constexpr std::string_view HELP_STRING = R"(Usage: cli-chess [OPTIONS]
 
@@ -104,6 +133,8 @@ Options:
 
 int main(int argc, char *argv[])
 {
+    setupTerminal();
+    
     std::string fenStr = std::string(DEFAULT_FEN);
     std::string pgnFilePath;
     std::string timeControl;
@@ -121,8 +152,7 @@ int main(int argc, char *argv[])
     }
 
     Renderer renderer(board);
-    PGNHandler pgnhandler;
-    GameMaster gamemaster(board, renderer, pgnhandler, timeControl);
+    GameMaster gamemaster(board, renderer, timeControl);
 
     gamemaster.run(fenStr, pgnFilePath);
 
