@@ -209,7 +209,7 @@ namespace
 
 namespace PGNHandler
 {
-    std::pair<PGNMetadata, std::vector<Move>> parseFile(std::filesystem::path filePath, const Board &initialBoard)
+    std::optional<std::pair<PGNMetadata, std::vector<Move>>> parseFile(std::filesystem::path filePath, const Board &initialBoard)
     {
         PGNMetadata metadata;
         std::vector<Move> parsedMoves;
@@ -218,8 +218,7 @@ namespace PGNHandler
 
         if (!file.is_open())
         {
-            std::cerr << "Hiba: Nem lehetett megnyitni a(z) " << filePath << " elérési úton lévő fájlt!" << std::endl;
-            return {metadata, parsedMoves};
+            return std::nullopt;
         }
 
         std::ostringstream rawTextStream;
@@ -309,7 +308,7 @@ namespace PGNHandler
             isWhiteToMove = !isWhiteToMove;
         }
 
-        return {metadata, parsedMoves};
+        return std::make_pair(metadata, parsedMoves);
     }
 
     std::string generatePGN(const PGNMetadata &metadata, const std::vector<Move> &history)
@@ -398,7 +397,7 @@ namespace PGNHandler
         }
 
         std::string resultStr = oss.str();
-        if (resultStr.empty() && resultStr.back() == ' ')
+        if (!resultStr.empty() && resultStr.back() == ' ')
             resultStr.pop_back();
 
         resultStr += " " + metadata.result + "\n";
