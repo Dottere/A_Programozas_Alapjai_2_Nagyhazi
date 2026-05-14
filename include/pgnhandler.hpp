@@ -1,20 +1,27 @@
 #ifndef PGNHANDLER_HPP
 #define PGNHANDLER_HPP
 
-#include "gamemaster.hpp"
-#include "board.hpp"
 #include "chesstypes.hpp"
 
+#include <filesystem>
 #include <string>
+#include <utility>
 #include <vector>
-#include <optional>
+
+class Board;
 
 class PGNHandler
 {
 public:
-    [[nodiscard]] std::pair<PGNMetadata, std::vector<Move>> parseFile(std::string filePath, Board &board);
+    [[nodiscard]] static std::pair<PGNMetadata, std::vector<Move>> parseFile(
+        std::filesystem::path filePath,
+        const Board &initialBoard
+    );
 
-    [[nodiscard]] std::string generatePGN(const PGNMetadata &metadata, const std::vector<Move> &history);
+    [[nodiscard]] static std::string generatePGN(
+        const PGNMetadata &metadata,
+        const std::vector<Move> &history
+    );
 };
 
 #endif

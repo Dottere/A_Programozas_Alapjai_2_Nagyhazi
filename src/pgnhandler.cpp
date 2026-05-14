@@ -4,8 +4,10 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <regex>
+#include <optional>
 
 namespace
 {
@@ -24,6 +26,9 @@ namespace
 
     std::optional<Move> sanToMoveObj(std::string sanMove, Board &board, bool isWhiteToMove)
     {
+
+        if (sanMove.empty()) return std::nullopt;
+
         bool isCapture = false;
         bool isCastle = false;
         bool isEnPassant = false;
@@ -143,13 +148,7 @@ namespace
             }
         }
 
-        Move::Flags flags{
-            .isCapture = isCapture,
-            .isCastle = isCastle,
-            .isEnPassant = isEnPassant,
-            .isCheck = isCheck,
-            .isCheckMate = isCheckMate,
-        };
+        Move::Flags flags{isCapture, isCastle, isEnPassant, isCheck, isCheckMate};
         
         return Move{startPos, endPos, flags, movedPiece, promotedTo, capturedPiecePtr};
     }
@@ -201,7 +200,7 @@ namespace
     }
 }
 
-std::pair<PGNMetadata, std::vector<Move>> PGNHandler::parseFile(std::string filePath, Board &board)
+std::pair<PGNMetadata, std::vector<Move>> PGNHandler::parseFile(std::filesystem::path filePath, const Board &initialBoard)
 {
     PGNMetadata metadata;
     std::vector<Move> parsedMoves;
@@ -214,44 +213,38 @@ std::pair<PGNMetadata, std::vector<Move>> PGNHandler::parseFile(std::string file
         return {metadata, parsedMoves};
     }
 
-    std::string rawMoveText = "";
+    std::ostringstream rawTextStream;
 
     std::smatch metaMatch;
 
     while (std::getline(file, line))
     {
-        if (line.empty())
-            continue;
+        if (line.empty()) continue;
+
         if (line[0] == '[')
         {
             if (std::regex_search(line, metaMatch, META_REGEX))
             {
                 std::string key = metaMatch[1].str();
                 std::string value = metaMatch[2].str();
-                if (key == "Event")
-                    metadata.event = value;
-                else if (key == "Site")
-                    metadata.site = value;
-                else if (key == "Date")
-                    metadata.date = value;
-                else if (key == "Round")
-                    metadata.round = value;
-                else if (key == "White")
-                    metadata.white = value;
-                else if (key == "Black")
-                    metadata.black = value;
-                else if (key == "Result")
-                    metadata.result = value;
-                else if (key == "FEN")
-                    metadata.fen = value;
+
+                if (key == "Event")        metadata.event = value;
+                else if (key == "Site")    metadata.site = value;
+                else if (key == "Date")    metadata.date = value;
+                else if (key == "Round")   metadata.round = value;
+                else if (key == "White")   metadata.white = value;
+                else if (key == "Black")   metadata.black = value;
+                else if (key == "Result")  metadata.result = value;
+                else if (key == "FEN")     metadata.fen = value;
             }
             continue;
         }
 
-        rawMoveText += line + " ";
+        rawTextStream << line << " ";
     }
     file.close();
 
+    std::string rawMoveText = rawTextStream.str();
     rawMoveText = std::regex_replace(rawMoveText, COMMENT_REGEX, "");   // remove comments
     rawMoveText = std::regex_replace(rawMoveText, VARIATION_REGEX, ""); // remove variations
     rawMoveText = std::regex_replace(rawMoveText, MOVE_NUM_REGEX, "");  // remove move numbers
@@ -261,32 +254,34 @@ std::pair<PGNMetadata, std::vector<Move>> PGNHandler::parseFile(std::string file
 
     bool isWhiteToMove = true;
 
+    Board simBoard = initialBoard;
+
     for (std::sregex_iterator i = words_begin; i != words_end; i++)
     {
         std::string sanMove = i->str();
 
-        // 1. make move object from san repr
         LOG_DEBUG("sanMove: " + sanMove);
-        auto currentMove = sanToMoveObj(sanMove, board, isWhiteToMove).value_or(Move());
+        
+        auto currentMove = sanToMoveObj(sanMove, simBoard, isWhiteToMove).value_or(Move());
 
         if (currentMove.startPos.x == -1)
         {
-            std::cerr << "Hiba: Hibás PGN lépés: " << sanMove << ". Lehet, hogy hibás a PGN?" << std::endl;
+            std::cerr << "Hiba: Hibás PGN lépés: " << sanMove << ". Lehet, hogy hibás a PGN?\n";
             break;
         }
 
         // 2. make the move on the board
-        board.movePiece(currentMove.startPos, currentMove.endPos);
+        simBoard.movePiece(currentMove.startPos, currentMove.endPos);
 
         if (currentMove.flags.isCastle)
         {
-            if (currentMove.endPos.x == 6)
+            if (currentMove.endPos.x == 6) // kingside
             {
-                board.movePiece(Position<>(7, currentMove.startPos.y), Position<>(5, currentMove.startPos.y));
+                simBoard.movePiece(Position<>(7, currentMove.startPos.y), Position<>(5, currentMove.startPos.y));
             }
-            else
+            else // queenside
             {
-                board.movePiece(Position<>(0, currentMove.startPos.y), Position<>(3, currentMove.startPos.y));
+                simBoard.movePiece(Position<>(0, currentMove.startPos.y), Position<>(3, currentMove.startPos.y));
             }
         }
 
@@ -301,21 +296,22 @@ std::pair<PGNMetadata, std::vector<Move>> PGNHandler::parseFile(std::string file
 
 std::string PGNHandler::generatePGN(const PGNMetadata &metadata, const std::vector<Move> &history)
 {
-    std::string pgnString = "";
+    std::ostringstream oss;
 
-    pgnString += "[Event \"" + metadata.event + "\"]\n";
-    pgnString += "[Site \"" + metadata.site + "\"]\n";
-    pgnString += "[Date \"" + metadata.date + "\"]\n";
-    pgnString += "[Round \"" + metadata.round + "\"]\n";
-    pgnString += "[White \"" + metadata.white + "\"]\n";
-    pgnString += "[Black \"" + metadata.black + "\"]\n";
-    pgnString += "[Result \"" + metadata.result + "\"]\n";
+    oss << "[Event \"" << metadata.event << "\"]\n";
+    oss << "[Site \"" << metadata.site << "\"]\n";
+    oss << "[Date \"" << metadata.date << "\"]\n";
+    oss << "[Round \"" << metadata.round << "\"]\n";
+    oss << "[White \"" << metadata.white << "\"]\n";
+    oss << "[Black \"" << metadata.black << "\"]\n";
+    oss << "[Result \"" << metadata.result << "\"]\n";
+
     if (!metadata.fen.empty())
     {
-        pgnString += "[SetUp \"1\"]\n";
-        pgnString += "[FEN \"" + metadata.fen + "\"]\n";
+        oss << "[SetUp \"1\"]\n";
+        oss << "[FEN \"" << metadata.fen << "\"]\n";
     }
-    pgnString += "\n";
+    oss << "\n";
 
     Board simBoard;
     simBoard.loadFromFEN(std::string(DEFAULT_FEN));
@@ -328,82 +324,58 @@ std::string PGNHandler::generatePGN(const PGNMetadata &metadata, const std::vect
 
         if (isWhiteToMove)
         {
-            pgnString += std::to_string((halfMoveCount / 2) + 1) + ". ";
+            oss << std::to_string((halfMoveCount / 2) + 1) << ". ";
         }
-
-        std::string san = "";
 
         if (m.flags.isCastle)
         {
-            san = (m.endPos.x == 6) ? "O-O" : "O-O-O";
+            oss << ((m.endPos.x == 6) ? "O-O" : "O-O-O");
         }
         else
         {
             if (m.movedPiece != 'P')
             {
-                san += m.movedPiece;
-
+                oss << m.movedPiece;
                 char disambig = getDisambiguation(simBoard, m, isWhiteToMove);
-                if (disambig != '\0')
-                    san += disambig;
+                if (disambig != '\0') oss << disambig;
             }
             else if (m.flags.isCapture || m.flags.isEnPassant)
             {
-                san += (char)('a' + m.startPos.x);
+                oss << (char)('a' + m.startPos.x);
             }
 
-            if (m.flags.isCapture || m.flags.isEnPassant)
-            {
-                san += "x";
-            }
+            if (m.flags.isCapture || m.flags.isEnPassant) oss << "x";
 
-            san += (char)('a' + m.endPos.x);
-            san += (char)('1' + m.endPos.y);
+            oss << (char)('a' + m.endPos.x) << (char)('1' + m.endPos.y);
 
             if (m.promotedTo != '\0' && m.promotedTo != ' ')
             {
-                san += "=";
-                san += m.promotedTo;
+                oss << "=" << m.promotedTo;
             }
         }
 
-        if (m.flags.isCheckMate)
-        {
-            san += "#";
-        }
-        else if (m.flags.isCheck)
-        {
-            san += "+";
-        }
+        if (m.flags.isCheckMate) oss << "#";
+        else if (m.flags.isCheck) oss << "+";
 
-        pgnString += san + " ";
+        oss << " ";
 
-        if (m.flags.isEnPassant)
-        {
-            simBoard.removePiece(Position<>(m.endPos.x, m.startPos.y));
-        }
+        if (m.flags.isEnPassant) simBoard.removePiece(Position<>(m.endPos.x, m.startPos.y));
 
         simBoard.movePiece(m.startPos, m.endPos);
 
         if (m.flags.isCastle)
         {
-            if (m.endPos.x == 6)
-            { // Kingside
-                simBoard.movePiece(Position<>(7, m.startPos.y), Position<>(5, m.startPos.y));
-            }
-            else
-            { // Queenside
-                simBoard.movePiece(Position<>(0, m.startPos.y), Position<>(3, m.startPos.y));
-            }
+            if (m.endPos.x == 6) simBoard.movePiece(Position<>(7, m.startPos.y), Position<>(5, m.startPos.y));
+            else simBoard.movePiece(Position<>(0, m.startPos.y), Position<>(3, m.startPos.y));
         }
 
         halfMoveCount++;
     }
 
-    if (!pgnString.empty() && pgnString.back() == ' ')
-        pgnString.pop_back();
+    std::string resultStr = oss.str();
+    if (resultStr.empty() && resultStr.back() == ' ') resultStr.pop_back();
 
-    pgnString += " " + metadata.result + "\n";
+    resultStr += " " + metadata.result + "\n";
 
-    return pgnString;
+    return resultStr;
 }
