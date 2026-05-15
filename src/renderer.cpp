@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-void Renderer::display(int whitePoints, int blackPoints)
+void Renderer::display(int whitePoints, int blackPoints) const
 {
     // clear the screen and reset cursor
     std::cout << "\033[2J\033[H" << '\n';
@@ -112,7 +112,7 @@ void Renderer::display(int whitePoints, int blackPoints)
     std::cout << std::endl;
 }
 
-void Renderer::display()
+void Renderer::display() const
 {
     // clear the screen and reset cursor
     std::cout << "\033[2J\033[H" << '\n';

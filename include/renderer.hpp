@@ -15,6 +15,6 @@ class Renderer
 
 public:
     Renderer(const Board &board) : board(board) {}
-    void display(int whitePoints, int blackPoints);
-    void display();
+    void display(int whitePoints, int blackPoints) const;
+    void display() const;
 };
