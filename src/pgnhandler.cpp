@@ -404,4 +404,62 @@ namespace PGNHandler
 
         return resultStr;
     }
+
+    void savePGN(PGNMetadata &metadata, std::vector<Move>& moveHistory) 
+    {
+        char answer = ' ';
+        std::cout << "Szeretnéd kimenteni a játékot PGN fájlba? (i/n)" << std::endl;
+        while (std::tolower(answer) != 'i' && std::tolower(answer) != 'n')
+        {
+            std::cin >> answer;
+        }
+
+        if (std::tolower(answer) == 'i')
+        {
+            std::cout << "A fájl neve (kiterjesztés nélkül): ";
+            std::string filename;
+            std::cin >> filename;
+
+            std::string line;
+
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "Fehér bábukkal játszó játékos neve: ";
+            std::getline(std::cin, line);
+            metadata.white = line;
+
+            std::cout << "Sötét bábukkal játszó játékos neve: ";
+            std::getline(std::cin, line);
+            metadata.black = line;
+
+            std::cout << "Az esemény neve: (Helyi esemény)";
+            std::getline(std::cin, line);
+            metadata.event = (line.find_first_not_of(" \r\n\t") != std::string::npos) ? line : "Helyi esemény";
+
+            std::time_t t = std::time(nullptr);
+            std::tm *now = std::localtime(&t);
+            std::stringstream time_ss;
+            time_ss << std::put_time(now, "%Y.%m.%d");
+            metadata.date = time_ss.str();
+
+            std::cout << "Játszott kör sorszáma: (1)";
+            std::getline(std::cin, line);
+            metadata.round = (line.find_first_not_of(" \r\n\t") != std::string::npos) ? line : "1";
+
+            std::cout << "Esemény helyszíne: (Ismeretlen)";
+            std::getline(std::cin, line);
+            metadata.site = (line.find_first_not_of(" \r\n\t") != std::string::npos) ? line : "Ismeretlen";
+
+            std::ofstream outFile(filename + ".pgn");
+            if (outFile.is_open())
+            {
+                outFile << PGNHandler::generatePGN(metadata, moveHistory);
+                outFile.close();
+                std::cout << "A játék sikeresen elmentve a " << filename << ".pgn fájlba!" << std::endl;
+            }
+            else
+            {
+                std::cerr << "Hiba: Nem lehetett megnyitni a fájlt az íráshoz!" << std::endl;
+            }
+        }
+    }
 }

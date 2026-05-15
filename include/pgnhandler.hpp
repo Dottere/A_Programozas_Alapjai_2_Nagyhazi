@@ -20,4 +20,7 @@ namespace PGNHandler
     [[nodiscard]] std::string generatePGN(
         const PGNMetadata &metadata,
         const std::vector<Move> &history);
+
+    [[nodiscard]] void savePGN(PGNMetadata &metadata, std::vector<Move>& moveHistory);
 };
+
