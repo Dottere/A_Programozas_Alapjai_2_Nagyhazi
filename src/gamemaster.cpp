@@ -332,14 +332,32 @@ bool GameMaster::processMove(Position<> startPos, Position<> endPos, char promot
     return false;
 }
 
-// private
-bool GameMaster::isValidInput(std::string userInput)
+bool GameMaster::isValidInput(std::string_view userInput) const
 {
-    static const std::regex pattern("^([a-h][1-8][a-h][1-8][qrbn]?|o-o-o|0-0-0|o-o|0-0|forfeit|draw|ff)$");
-    return std::regex_match(userInput, pattern);
+    if (userInput == "forfeit" || userInput == "ff" || userInput == "draw" ||
+        userInput == "o-o" || userInput == "0-0" || 
+        userInput == "o-o-o" || userInput == "0-0-0") 
+        return true;
+
+    if (userInput.length() < 4 || userInput.length() > 5) 
+        return false;
+
+    bool validStart = (userInput[0] >= 'a' && userInput[0] <= 'h') && 
+                      (userInput[1] >= '1' && userInput[1] <= '8');
+    bool validEnd   = (userInput[2] >= 'a' && userInput[2] <= 'h') && 
+                      (userInput[3] >= '1' && userInput[3] <= '8');
+
+    if (!validStart || !validEnd) return false;
+
+    if (userInput.length() == 5) {
+        char p = static_cast<char>(std::tolower(userInput[4]));
+        return p == 'q' || p == 'r' || p == 'b' || p == 'n';
+    }
+
+    return true;
 }
 
-void GameMaster::run(const std::string &fenStr, const std::string &pgnFilePath)
+void GameMaster::run(std::string_view fenStr, std::string_view pgnFilePath)
 {
     if (pgnFilePath.empty())
     {
@@ -351,7 +369,7 @@ void GameMaster::run(const std::string &fenStr, const std::string &pgnFilePath)
     }
 }
 
-void GameMaster::replayPGN(const std::string &pgnFilePath)
+void GameMaster::replayPGN(std::string_view pgnFilePath)
 {
     auto parsed = PGNHandler::parseFile(pgnFilePath, board).value_or(std::make_pair(PGNMetadata{}, std::vector<Move>{}));
     auto metadata = parsed.first;
@@ -425,7 +443,7 @@ void GameMaster::replayPGN(const std::string &pgnFilePath)
     }
 }
 
-void GameMaster::manualPlay(const std::string &fenStr)
+void GameMaster::manualPlay(std::string_view fenStr)
 {
     PGNMetadata metadata;
 
@@ -439,58 +457,5 @@ void GameMaster::manualPlay(const std::string &fenStr)
 
     gameLoop(metadata);
 
-    char answer = ' ';
-    std::cout << "Szeretnéd kimenteni a játékot PGN fájlba? (i/n)" << std::endl;
-    while (std::tolower(answer) != 'i' && std::tolower(answer) != 'n')
-    {
-        std::cin >> answer;
-    }
-
-    if (std::tolower(answer) == 'i')
-    {
-        std::cout << "A fájl neve (kiterjesztés nélkül): ";
-        std::string filename;
-        std::cin >> filename;
-
-        std::string line;
-
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        std::cout << "Fehér bábukkal játszó játékos neve: ";
-        std::getline(std::cin, line);
-        metadata.white = line;
-
-        std::cout << "Sötét bábukkal játszó játékos neve: ";
-        std::getline(std::cin, line);
-        metadata.black = line;
-
-        std::cout << "Az esemény neve: (Helyi esemény)";
-        std::getline(std::cin, line);
-        metadata.event = (line.find_first_not_of(" \r\n\t") != std::string::npos) ? line : "Helyi esemény";
-
-        std::time_t t = std::time(nullptr);
-        std::tm *now = std::localtime(&t);
-        std::stringstream time_ss;
-        time_ss << std::put_time(now, "%Y.%m.%d");
-        metadata.date = time_ss.str();
-
-        std::cout << "Játszott kör sorszáma: (1)";
-        std::getline(std::cin, line);
-        metadata.round = (line.find_first_not_of(" \r\n\t") != std::string::npos) ? line : "1";
-
-        std::cout << "Esemény helyszíne: (Ismeretlen)";
-        std::getline(std::cin, line);
-        metadata.site = (line.find_first_not_of(" \r\n\t") != std::string::npos) ? line : "Ismeretlen";
-
-        std::ofstream outFile(filename + ".pgn");
-        if (outFile.is_open())
-        {
-            outFile << PGNHandler::generatePGN(metadata, moveHistory);
-            outFile.close();
-            std::cout << "A játék sikeresen elmentve a " << filename << ".pgn fájlba!" << std::endl;
-        }
-        else
-        {
-            std::cerr << "Hiba: Nem lehetett megnyitni a fájlt az íráshoz!" << std::endl;
-        }
-    }
+    PGNHandler::savePGN(metadata, moveHistory);
 }

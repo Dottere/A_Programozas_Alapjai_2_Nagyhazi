@@ -6,28 +6,30 @@
 #include "chesstypes.hpp"
 
 #include <vector>
-#include <string>
+#include <string_view>
 
 class GameMaster
 {
     Board &board;
-    Renderer &renderer;
+    const Renderer &renderer;
 
     int pointsWhite = 0;
     int pointsBlack = 0;
 
     std::vector<Move> moveHistory;
 
-    bool isValidInput(std::string userInput);
     void gameLoop(PGNMetadata &metadata);
-    bool processMove(Position<> startPos, Position<> endPos, char promotedTo = '\0');
-    void replayPGN(const std::string &pgnFilePath);
-    void manualPlay(const std::string &fenStr);
+    void manualPlay(std::string_view fenStr);
+    void replayPGN(std::string_view pgnFilePath);
+
+    [[nodiscard]] bool isValidInput(std::string_view userInput) const;
+    [[nodiscard]] bool processMove(Position<> startPos, Position<> endPos, char promotedTo = '\0');
+
 
 public:
-    GameMaster(Board &board, Renderer &renderer)
+    GameMaster(Board &board, const Renderer &renderer)
         : board(board),
           renderer(renderer) {}
 
-    void run(const std::string &fenStr, const std::string &pgnFilePath);
+    void run(std::string_view fenStr, std::string_view pgnFilePath);
 };
