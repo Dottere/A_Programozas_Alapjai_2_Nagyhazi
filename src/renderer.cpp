@@ -2,7 +2,6 @@
 #include "piece.hpp"
 #include <iostream>
 
-// The public functions simply delegate to the internal renderer
 void Renderer::display(int whitePoints, int blackPoints) const
 {
     renderInternal(true, whitePoints, blackPoints);
@@ -13,7 +12,6 @@ void Renderer::display() const
     renderInternal(false);
 }
 
-// The unified internal renderer
 void Renderer::renderInternal(bool showUI, int whitePoints, int blackPoints) const
 {
     // clear the screen and reset cursor
@@ -114,7 +112,6 @@ void Renderer::renderInternal(bool showUI, int whitePoints, int blackPoints) con
         std::cout << static_cast<char>('A' + x) << " ";
     }
 
-    // footer UI logic
     if (showUI)
     {
         std::cout << "       " << "Összpontszám: " << whitePoints << " | " << blackPoints;
