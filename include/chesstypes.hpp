@@ -47,6 +47,15 @@ std::ostream &operator<<(std::ostream &os, const Position<T> &p)
     return os;
 }
 
+struct castlingRights
+{
+    uint8_t whiteKingside  : 1;
+    uint8_t whiteQueenside : 1;
+    uint8_t blackKingside  : 1;
+    uint8_t blackQueenside : 1;
+    uint8_t reserved       : 4;
+};
+
 struct Move
 {
 
@@ -55,12 +64,13 @@ struct Move
 
     struct Flags
     {
-        uint8_t isCapture : 1;
-        uint8_t isCastle : 1;
-        uint8_t isEnPassant : 1;
-        uint8_t isCheck : 1;
-        uint8_t isCheckMate : 1;
-        uint8_t reserved : 2;
+        uint8_t wasFirstMove : 1;
+        uint8_t isCapture    : 1;
+        uint8_t isCastle     : 1;
+        uint8_t isEnPassant  : 1;
+        uint8_t isCheck      : 1;
+        uint8_t isCheckMate  : 1;
+        uint8_t reserved     : 2;
     } flags;
 
     char movedPiece;
@@ -69,8 +79,18 @@ struct Move
     char capturedPieceType; // 'n', 'p', 'r'... etc
     Color capturedPieceColor;
 
-    Move(Position<> start = {-1, -1}, Position<> end = {-1, -1}, Flags f = {0},
-         char movedPiece = '\0', char promotedTo = '\0', Piece *capturedPiece = nullptr);
+    Position<> prevEnPassantTarget;
+    castlingRights prevCastlingRights;
+
+    Move(
+        Position<> start = {-1, -1}, 
+        Position<> end   = {-1, -1}, 
+        Flags f = {0},
+        char movedPiece = '\0', 
+        char promotedTo = '\0', 
+        Piece *capturedPiece = nullptr,
+        Position<> prevEnPassantTarget = {-1, -1},
+        castlingRights prevCastlingRights = {0});
 };
 std::ostream& operator<<(std::ostream &os, const Move &move);
 
@@ -86,3 +106,4 @@ struct PGNMetadata
     std::string setup = "";
     std::string fen = "";
 };
+

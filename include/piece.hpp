@@ -49,7 +49,7 @@ public:
     [[nodiscard]] int getValue() const { return value; }
     [[nodiscard]] Color getColor() const { return PieceColor; }
     [[nodiscard]] bool getHasMoved() const { return hasMoved; }
-    void setHasMoved() { hasMoved = true; }
+    void setHasMoved(bool val) { hasMoved = val; }
     [[nodiscard]] char getPieceType() const { return pieceType; }
     [[nodiscard]] bool isWhite() const { return PieceColor == Color::WHITE; }
     [[nodiscard]] virtual bool canJump() const { return false; }

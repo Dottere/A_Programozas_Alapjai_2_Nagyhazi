@@ -3,13 +3,18 @@
 #include "piece.hpp"
 
 Move::Move(Position<> start, Position<> end, Flags f,
-           char movedPiece, char promotedTo, Piece *capturedPiece) : startPos(start),
-                                                                     endPos(end),
-                                                                     flags(f),
-                                                                     movedPiece(movedPiece),
-                                                                     promotedTo(promotedTo),
-                                                                     capturedPieceType('\0'),
-                                                                     capturedPieceColor(Color::NONE)
+            char movedPiece, char promotedTo, Piece *capturedPiece,
+            Position<> prevEnPassantTarget,
+            castlingRights prevCastlingRights) : startPos(start),
+                                                        endPos(end),
+                                                        flags(f),
+                                                        movedPiece(movedPiece),
+                                                        promotedTo(promotedTo),
+                                                        capturedPieceType('\0'),
+                                                        capturedPieceColor(Color::NONE),
+                                                        prevEnPassantTarget(prevEnPassantTarget),
+                                                        prevCastlingRights(prevCastlingRights)
+                                                                     
 {
     if (capturedPiece)
     {
