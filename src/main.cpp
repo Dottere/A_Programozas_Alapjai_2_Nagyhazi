@@ -53,7 +53,7 @@ Options:
     -h, --help                          Prints this help
     -f, --fen <string>                  Loads a game from the provided FEN string
     -p, --pgn <file path>               Loads a game from the provided PGN allowing you to analyze is step by step)
-    -t, --time-control <1|5|10|60>      Sets the time control of the game to <1|5|10|60> minutes)";
+)"; //-t, --time-control <1|5|10|60>      Sets the time control of the game to <1|5|10|60> minutes)";
 
     bool parseArguments(int argc, char *argv[], std::string &fenStr, std::string &pgnFilePath, std::string &timeControl)
     {
