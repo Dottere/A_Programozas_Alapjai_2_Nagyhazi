@@ -288,17 +288,17 @@ namespace PGNHandler
             }
 
             // 2. make the move on the board
-            simBoard.movePiece(currentMove.startPos, currentMove.endPos);
+            simBoard.makeMove(currentMove.startPos, currentMove.endPos);
 
             if (currentMove.flags.isCastle)
             {
                 if (currentMove.endPos.x == 6) // kingside
                 {
-                    simBoard.movePiece(Position<>(7, currentMove.startPos.y), Position<>(5, currentMove.startPos.y));
+                    simBoard.makeMove(Position<>(7, currentMove.startPos.y), Position<>(5, currentMove.startPos.y));
                 }
                 else // queenside
                 {
-                    simBoard.movePiece(Position<>(0, currentMove.startPos.y), Position<>(3, currentMove.startPos.y));
+                    simBoard.makeMove(Position<>(0, currentMove.startPos.y), Position<>(3, currentMove.startPos.y));
                 }
             }
 
@@ -383,14 +383,14 @@ namespace PGNHandler
             if (m.flags.isEnPassant)
                 simBoard.removePiece(Position<>(m.endPos.x, m.startPos.y));
 
-            simBoard.movePiece(m.startPos, m.endPos);
+            simBoard.makeMove(m.startPos, m.endPos);
 
             if (m.flags.isCastle)
             {
                 if (m.endPos.x == 6)
-                    simBoard.movePiece(Position<>(7, m.startPos.y), Position<>(5, m.startPos.y));
+                    simBoard.makeMove(Position<>(7, m.startPos.y), Position<>(5, m.startPos.y));
                 else
-                    simBoard.movePiece(Position<>(0, m.startPos.y), Position<>(3, m.startPos.y));
+                    simBoard.makeMove(Position<>(0, m.startPos.y), Position<>(3, m.startPos.y));
             }
 
             halfMoveCount++;

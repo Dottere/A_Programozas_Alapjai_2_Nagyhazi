@@ -21,6 +21,6 @@ namespace PGNHandler
         const PGNMetadata &metadata,
         const std::vector<Move> &history);
 
-    [[nodiscard]] void savePGN(PGNMetadata &metadata, std::vector<Move>& moveHistory);
+    void savePGN(PGNMetadata &metadata, std::vector<Move>& moveHistory);
 };
 
