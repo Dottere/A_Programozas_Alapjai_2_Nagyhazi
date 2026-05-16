@@ -3,7 +3,7 @@
 #include <cmath>
 
 // Rook
-bool Rook::checkGeometry(Position<> startPos, Position<> endPos, const Piece *TargetPiece) const
+bool Rook::checkGeometry(Position<> startPos, Position<> endPos, const Piece *) const
 {
     int dx = std::abs(endPos.x - startPos.x);
     int dy = std::abs(endPos.y - startPos.y);
@@ -12,7 +12,7 @@ bool Rook::checkGeometry(Position<> startPos, Position<> endPos, const Piece *Ta
 }
 
 // Knight
-bool Knight::checkGeometry(Position<> startPos, Position<> endPos, const Piece *TargetPiece) const
+bool Knight::checkGeometry(Position<> startPos, Position<> endPos, const Piece *) const
 {
     int dx = std::abs(endPos.x - startPos.x);
     int dy = std::abs(endPos.y - startPos.y);
@@ -21,7 +21,7 @@ bool Knight::checkGeometry(Position<> startPos, Position<> endPos, const Piece *
 }
 
 // Bishop
-bool Bishop::checkGeometry(Position<> startPos, Position<> endPos, const Piece *TargetPiece) const
+bool Bishop::checkGeometry(Position<> startPos, Position<> endPos, const Piece *) const
 {
     int dx = std::abs(endPos.x - startPos.x);
     int dy = std::abs(endPos.y - startPos.y);
@@ -30,7 +30,7 @@ bool Bishop::checkGeometry(Position<> startPos, Position<> endPos, const Piece *
 }
 
 // Queen
-bool Queen::checkGeometry(Position<> startPos, Position<> endPos, const Piece *TargetPiece) const
+bool Queen::checkGeometry(Position<> startPos, Position<> endPos, const Piece *) const
 {
 
     int dx = std::abs(endPos.x - startPos.x);
@@ -40,7 +40,7 @@ bool Queen::checkGeometry(Position<> startPos, Position<> endPos, const Piece *T
 }
 
 // King
-bool King::checkGeometry(Position<> startPos, Position<> endPos, const Piece *TargetPiece) const
+bool King::checkGeometry(Position<> startPos, Position<> endPos, const Piece *) const
 {
     int dx = std::abs(endPos.x - startPos.x);
     int dy = std::abs(endPos.y - startPos.y);

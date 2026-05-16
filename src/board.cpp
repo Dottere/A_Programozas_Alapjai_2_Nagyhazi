@@ -249,7 +249,10 @@ void Board::clearBoard()
     }
 
     turn = Color::WHITE;
-    castlingRight = {0};
+    
+    castlingRight.whiteKingside = castlingRight.whiteQueenside = castlingRight.blackKingside = castlingRight.blackQueenside = {0};
+    castlingRight.reserved = {0};
+
     enPassantTarget.reset();
     halfMoveClock = 0;
     fullMoveNumber = 1;
@@ -548,11 +551,11 @@ void Board::undoMove(const Move& m)
             if (m.flags.isEnPassant) 
             {
                 Position<> epPawnPos{m.endPos.x, m.startPos.y};
-                if (!placePiece(std::move(revivedPiece), epPawnPos));
+                if (!placePiece(std::move(revivedPiece), epPawnPos)) {return;}
             }
             else
             {   
-                if(placePiece(std::move(revivedPiece), m.endPos));
+                if(placePiece(std::move(revivedPiece), m.endPos)) {return;}
             }
         }
         

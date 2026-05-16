@@ -200,7 +200,7 @@ namespace BoardTests {
                 auto startPos1 = board.findStartSquare('N', true, targetSquare, 'b', '\0');
                 EXPECT_TRUE(startPos1.has_value());
 
-                if (!startPos1.has_value())
+                if (startPos1.has_value())
                 {
                         EXPECT_EQ(startPos1->x, 1); // 'b' file
                         EXPECT_EQ(startPos1->y, 0); // '1' rank
@@ -210,7 +210,7 @@ namespace BoardTests {
                 auto startPos2 = board.findStartSquare('N', true, targetSquare, 'f', '\0');
                 EXPECT_TRUE(startPos2.has_value());
 
-                if (!startPos2.has_value())
+                if (startPos2.has_value())
                 {
                         EXPECT_EQ(startPos2->x, 5); // 'f' file
                         EXPECT_EQ(startPos2->y, 2); // '3' rank
@@ -320,7 +320,7 @@ namespace PGNTests {
                         PGNHandler::parseFile(tempFile.filePath, initialBoard)
                         .value_or(std::make_pair(PGNMetadata{}, std::vector<Move>{}));
 
-                        EXPECT_EQ(7, moves.size()); // 4 white moves, 3 black moves
+                        EXPECT_EQ(7u, moves.size()); // 4 white moves, 3 black moves
 
                         // Check White's first move: e4
                         EXPECT_EQ('P', moves[0].movedPiece);
@@ -350,7 +350,7 @@ namespace PGNTests {
                         PGNHandler::parseFile(tempFile.filePath, initialBoard)
                         .value_or(std::make_pair(PGNMetadata{}, std::vector<Move>{}));
 
-                        EXPECT_EQ(19, moves.size());
+                        EXPECT_EQ(19u, moves.size());
 
                         // White Kingside Castle (6. O-O) -> index 10
                         EXPECT_TRUE(moves[10].flags.isCastle);
@@ -389,16 +389,10 @@ namespace PGNTests {
                         // Manually construct a short history: 1. e4 e5
                         std::vector<Move> history;
                         
-                        Move m1;
-                        m1.movedPiece = 'P';
-                        m1.startPos = Position<>(4, 1); // e2
-                        m1.endPos = Position<>(4, 3);   // e4
+                        Move m1{{4, 1}, {4, 3}, {}, 'P', '\0', nullptr, {}, {}};
                         history.push_back(m1);
 
-                        Move m2;
-                        m2.movedPiece = 'P';
-                        m2.startPos = Position<>(4, 6); // e7
-                        m2.endPos = Position<>(4, 4);   // e5
+                        Move m2{{4, 6}, {4, 4}, {}, 'P', '\0', nullptr, {}, {}};
                         history.push_back(m2);
 
                         std::string generated = PGNHandler::generatePGN(meta, history);
@@ -424,7 +418,7 @@ namespace GameMasterTests {
             
             // UPDATED: Constructed GameMaster using your cleaned up parameter list 
             // (no longer attempts to decode time tracking configurations).
-            GameMaster gm(board, renderer);
+            [[maybe_unused]] GameMaster gm(board, renderer);
             
             EXPECT_TRUE(true);
         }

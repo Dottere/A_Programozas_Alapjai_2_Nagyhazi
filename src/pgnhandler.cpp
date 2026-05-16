@@ -72,14 +72,16 @@ namespace
             }
 
             Move::Flags flags{
-                .isCapture = isCapture,
-                .isCastle = isCastle,
-                .isEnPassant = isEnPassant,
-                .isCheck = isCheck,
-                .isCheckMate = isCheckMate,
+                {0}, // wasFirstMove
+                isCapture,
+                isCastle,
+                isEnPassant,
+                isCheck,
+                isCheckMate,
+                {0} // reserved for bitpacking
             };
 
-            return Move{startPos, endPos, flags, movedPiece, promotedTo, nullptr};
+            return Move{startPos, endPos, flags, movedPiece, promotedTo, nullptr, {-1,-1}, {}};
         }
 
         size_t equalPos = sanMove.find('=');
@@ -150,14 +152,16 @@ namespace
         }
 
         Move::Flags flags{
-            .isCapture = isCapture,
-            .isCastle = isCastle,
-            .isEnPassant = isEnPassant,
-            .isCheck = isCheck,
-            .isCheckMate = isCheckMate
+            {0}, // wasFirstMove
+            isCapture,
+            isCastle,
+            isEnPassant,
+            isCheck,
+            isCheckMate,
+            {0} // reserved for bitpacking
         };
 
-        return Move{startPos, endPos, flags, movedPiece, promotedTo, capturedPiecePtr};
+        return Move{startPos, endPos, flags, movedPiece, promotedTo, capturedPiecePtr, {-1,-1}, {}};
     }
 
     char getDisambiguation(Board &board, const Move &m, bool isWhiteToMove)
@@ -279,7 +283,7 @@ namespace PGNHandler
 
             LOG_DEBUG("sanMove: " + sanMove);
 
-            auto currentMove = sanToMoveObj(sanMove, simBoard, isWhiteToMove).value_or(Move());
+            auto currentMove = sanToMoveObj(sanMove, simBoard, isWhiteToMove).value_or(Move{{-1, -1}, {-1, -1}, {}, '\0', '\0', nullptr, {-1, -1}, {}});
 
             if (currentMove.startPos.x == -1)
             {

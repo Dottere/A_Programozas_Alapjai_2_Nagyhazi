@@ -141,13 +141,15 @@ Move GameMaster::createMoveRecord(const Piece *p, Position<> startPos, Position<
     return Move(
         startPos, endPos,
         Move::Flags{
-            .wasFirstMove = !p->getHasMoved(),
-            .isCapture = isCapture,
-            .isCastle = isCastle,
-            .isEnPassant = isEnPassant,
-            .isCheck = false,
-            .isCheckMate = false},
-        p->getPieceType(), promotedTo, capturedPiece, prevEP);
+            !p->getHasMoved(), // wasFirstMove
+            isCapture,
+            isCastle,
+            isEnPassant,
+            false, // isCheck
+            false, // isCheckMate
+            {0} // reserved for bit packing
+        },
+        p->getPieceType(), promotedTo, capturedPiece, prevEP, {0,0,0,0,0});
 }
 
 void GameMaster::gameLoop(PGNMetadata &metadata)
@@ -357,11 +359,11 @@ void GameMaster::run(std::string_view fenStr, std::string_view pgnFilePath)
     }
     else
     {
-        replayPGN(pgnFilePath);
+        if(!replayPGN(pgnFilePath)) std::cerr << "Hiba: A kért fájl nem létezik!" << std::endl;
     }
 }
 
-void GameMaster::replayPGN(std::string_view pgnFilePath)
+bool GameMaster::replayPGN(std::string_view pgnFilePath)
 {
     auto parsed = PGNHandler::parseFile(pgnFilePath, board).value_or(std::make_pair(PGNMetadata{}, std::vector<Move>{}));
     auto metadata = parsed.first;
@@ -369,8 +371,7 @@ void GameMaster::replayPGN(std::string_view pgnFilePath)
 
     if (this->moveHistory.empty()) 
     {
-        LOG_ERROR("A kért fájl nem létezik!");
-        return;
+        return false;
     }
 
     std::string startingFen = metadata.fen.empty() ? std::string(DEFAULT_FEN) : metadata.fen;
@@ -405,6 +406,7 @@ void GameMaster::replayPGN(std::string_view pgnFilePath)
             renderer.display(pointsWhite, pointsBlack);
         }
     }
+    return true;
 }
 
 void GameMaster::manualPlay(std::string_view fenStr)
