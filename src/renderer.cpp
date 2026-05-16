@@ -50,7 +50,7 @@ void Renderer::renderInternal(bool showUI, int whitePoints, int blackPoints) con
             }
 
             if (p)
-            {
+            {   
                 if (p->getColor() == Color::WHITE)
                     std::cout << P1_COLOR << p->getSymbol() << " " << RESET;
                 else

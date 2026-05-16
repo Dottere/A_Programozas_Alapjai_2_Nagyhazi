@@ -291,14 +291,17 @@ bool GameMaster::processMove(Position<> startPos, Position<> endPos, char promot
         return false;
     }
 
-    if (!p->canJump() && !board.isPathClear(startPos, endPos))
+    auto path = p->getPath(startPos, endPos);
+
+    if (!board.isPathClear(path))
     {
         std::cerr << "Helytelen lépés: Útban van egy bábu." << std::endl;
         return false;
     }
 
     int rookStartX = -1, rookEndX = -1;
-    bool isCastle = (p->isKing() && std::abs(startPos.x - endPos.x) == 2);
+    bool isCastle = ((startPos == board.getWhiteKingPos() || startPos == board.getBlackKingPos())
+    && (std::abs(startPos.x - endPos.x) == 2));
 
     if (isCastle && !validateCastlingRules(startPos, endPos, rookStartX, rookEndX))
     {

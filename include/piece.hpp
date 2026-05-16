@@ -9,6 +9,7 @@
 #include <string>
 #include <string_view>
 #include <memory>
+#include <vector>
 
 // forward declaration
 class Board;
@@ -45,14 +46,31 @@ public:
         return checkGeometry(startPos, endPos, TargetPiece);
     }
 
-    [[nodiscard]] bool isKing() const { return pieceType == 'K'; }
     [[nodiscard]] int getValue() const { return value; }
     [[nodiscard]] Color getColor() const { return PieceColor; }
     [[nodiscard]] bool getHasMoved() const { return hasMoved; }
     void setHasMoved(bool val) { hasMoved = val; }
     [[nodiscard]] char getPieceType() const { return pieceType; }
     [[nodiscard]] bool isWhite() const { return PieceColor == Color::WHITE; }
-    [[nodiscard]] virtual bool canJump() const { return false; }
+        
+    [[nodiscard]] virtual std::vector<Position<>> getPath(Position<> startPos, Position<> endPos) const
+    {
+        std::vector<Position<>> path;
+        int stepX = (endPos.x > startPos.x) ? 1 : ((endPos.x < startPos.x) ? -1 : 0);
+        int stepY = (endPos.y > startPos.y) ? 1 : ((endPos.y < startPos.y) ? -1 : 0);
+
+        Position<> current = startPos;
+        current.x += stepX;
+        current.y += stepY;
+
+        while(current.x != endPos.x || current.y != endPos.y)
+        {
+            path.push_back(current);
+            current.x += stepX;
+            current.y += stepY;
+        }
+        return path;
+    }
 
     [[nodiscard]] std::string_view getSymbol() const { return symbol; }
 
@@ -69,6 +87,8 @@ public:
         return std::make_unique<Rook>(*this);
     }
 
+    
+
 protected:
     [[nodiscard]] bool checkGeometry(Position<> startPos, Position<> endPos, const Piece *TargetPiece) const override;
 };
@@ -83,9 +103,9 @@ public:
         return std::make_unique<Knight>(*this);
     }
 
-    bool canJump() const override
+    [[nodiscard]] virtual std::vector<Position<>> getPath(Position<>, Position<>) const override
     {
-        return true;
+        return {};
     }
 
 protected:
@@ -130,6 +150,11 @@ public:
         return std::make_unique<King>(*this);
     }
 
+    [[nodiscard]] virtual std::vector<Position<>> getPath(Position<>, Position<>) const override
+    {
+        return {};
+    }
+
 protected:
     [[nodiscard]] bool checkGeometry(Position<> startPos, Position<> endPos, const Piece *TargetPiece) const override;
 };
@@ -142,6 +167,11 @@ public:
     [[nodiscard]] std::unique_ptr<Piece> clone() const override
     {
         return std::make_unique<Pawn>(*this);
+    }
+
+    [[nodiscard]] virtual std::vector<Position<>> getPath(Position<>, Position<>) const override
+    {
+        return {};
     }
 
 protected:

@@ -44,6 +44,9 @@ class Board
     int halfMoveClock = 0;  // 50 lépéses szabály
     int fullMoveNumber = 1; // Teljes lépésszám
 
+    Position<> whiteKingPos;
+    Position<> blackKingPos;
+
     // handle coordinate translation in place
     [[nodiscard]] Square &at(Position<> pos) { return board[pos.x][7 - pos.y]; }
 
@@ -55,6 +58,12 @@ public:
     Board(const Board &b);
     ~Board() = default;
 
+    [[nodiscard]] Position<> getWhiteKingPos() const { return whiteKingPos; }
+    [[nodiscard]] Position<> getBlackKingPos() const { return blackKingPos; }
+
+    void setWhiteKingPos(Position<> pos) { whiteKingPos = pos; }
+    void setBlackKingPos(Position<> pos) { blackKingPos = pos; }
+
     [[nodiscard]] const std::vector<Square> &getWhiteCaptured() const { return whiteCaptured; }
     [[nodiscard]] const std::vector<Square> &getBlackCaptured() const { return blackCaptured; }
 
@@ -64,25 +73,7 @@ public:
 
     [[nodiscard]] const Piece *getPiece(Position<> pos) const { return isOnBoard(pos) ? at(pos).get() : nullptr; }
 
-    [[nodiscard]] bool isPathClear(Position<> startPos, Position<> endPos) const;
-
-    template <int stepX, int stepY>
-    [[nodiscard]] bool isPathClear(Position<> startPos, Position<> endPos) const
-    {
-        int currX = startPos.x + stepX;
-        int currY = startPos.y + stepY;
-
-        while (currX != endPos.x || currY != endPos.y)
-        {
-            if (at(Position<>(currX, currY)))
-            {
-                return false;
-            }
-            currX += stepX;
-            currY += stepY;
-        }
-        return true;
-    }
+    [[nodiscard]] bool isPathClear(const std::vector<Position<>>& path) const;
 
     [[nodiscard]] bool isCheck(Color c);
     [[nodiscard]] bool hasLegalMoves(Color c);

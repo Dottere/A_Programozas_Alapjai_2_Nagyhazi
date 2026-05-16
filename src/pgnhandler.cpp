@@ -187,8 +187,9 @@ namespace
                 if (otherPiece && otherPiece->getPieceType() == pieceTypeToFind)
                 {
                     if (otherPiece->isValidMove(currentPos, m.endPos, board.getPiece(m.endPos)))
-                    {
-                        if (otherPiece->canJump() || board.isPathClear(currentPos, m.endPos))
+                    {   
+                        auto path = otherPiece->getPath(currentPos, m.endPos);
+                        if (board.isPathClear(path))
                         {
                             collisionFound = true;
                             if (currentPos.x == m.startPos.x)

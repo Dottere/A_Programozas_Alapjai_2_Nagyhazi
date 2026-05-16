@@ -19,7 +19,7 @@ namespace
             for (int y = 0; y < BOARD_SIZE; y++)
             {
                 const Piece *p = b.getPiece({x, y});
-                if (p && p->isKing() && p->getColor() == c)
+                if ((Position<>{x,y} == b.getWhiteKingPos() || Position<>{x,y} == b.getBlackKingPos())&& p && p->getColor() == c)
                 {
                     return Position<>{x, y};
                 }
@@ -62,43 +62,14 @@ Board::Board(const Board &b)
     this->fullMoveNumber = b.fullMoveNumber;
 }
 
-bool Board::isPathClear(Position<> startPos, Position<> endPos) const
+bool Board::isPathClear(const std::vector<Position<>>& path) const
 {
-    int dx = std::abs(endPos.x - startPos.x);
-    int dy = std::abs(endPos.y - startPos.y);
-
-    if (dx != 0 && dy != 0 && dx != dy)
+    for (const auto& pos : path) 
     {
-        return false;
-    }
-
-    int stepX = (endPos.x > startPos.x) ? 1 : ((endPos.x < startPos.x) ? -1 : 0);
-    int stepY = (endPos.y > startPos.y) ? 1 : ((endPos.y < startPos.y) ? -1 : 0);
-
-    if (stepX == 1)
-    {
-        if (stepY == 0)
-            return isPathClear<1, 0>(startPos, endPos); // Right
-        if (stepY == 1)
-            return isPathClear<1, 1>(startPos, endPos); // Up-Right
-        if (stepY == -1)
-            return isPathClear<1, -1>(startPos, endPos); // Down-Right
-    }
-    else if (stepX == -1)
-    {
-        if (stepY == 0)
-            return isPathClear<-1, 0>(startPos, endPos); // Left
-        if (stepY == 1)
-            return isPathClear<-1, 1>(startPos, endPos); // Up-Left
-        if (stepY == -1)
-            return isPathClear<-1, -1>(startPos, endPos); // Down-Left
-    }
-    else if (stepX == 0)
-    {
-        if (stepY == 1)
-            return isPathClear<0, 1>(startPos, endPos); // Up
-        if (stepY == -1)
-            return isPathClear<0, -1>(startPos, endPos); // Down
+        if (getPiece(pos))
+        {
+            return false;
+        } 
     }
 
     return true;
@@ -128,7 +99,7 @@ bool Board::isCheck(Color c)
 
             if (attacker && attacker->getColor() != c)
             {
-                if (attacker->isKing())
+                if (attackerPos == whiteKingPos || attackerPos == blackKingPos)
                 {
                     if (std::abs(attackerPos.x - kingPos.x) > 1 || std::abs(attackerPos.y - kingPos.y) > 1)
                     {
@@ -137,7 +108,7 @@ bool Board::isCheck(Color c)
                 }
 
                 if (attacker->isValidMove(attackerPos, kingPos, getPiece(kingPos)) &&
-                    (attacker->canJump() || isPathClear(attackerPos, kingPos)))
+                    isPathClear(attacker->getPath(attackerPos, kingPos)))
                 {
                     return true;
                 }
@@ -169,13 +140,38 @@ bool Board::hasLegalMoves(Color c)
                     if (target && target->getColor() == c)
                         continue;
 
-                    if (p->isValidMove(startPos, endPos, target) &&
-                        (p->canJump() || isPathClear(startPos, endPos)))
+                    if (p->isValidMove(startPos, endPos, target)) 
                     {
-                        Board clonedBoard(*this);
-                        clonedBoard.makeMove(startPos, endPos);
-                        if (!clonedBoard.isCheck(c))
+                        auto path = p->getPath(startPos, endPos);
+                        
+                        if (isPathClear(path)) 
+                        {                        
+                        bool isCapture = (target != nullptr);
+                        Color capturedColor = isCapture ? target->getColor() : Color::WHITE;
+                        
+                        makeMove(startPos, endPos);
+                        
+                        bool inCheck = isCheck(c);
+                        
+                        at(startPos) = std::move(at(endPos)); // Visszacsúsztatjuk a bábut a kiindulópontra
+                        
+                        if (whiteKingPos == endPos) whiteKingPos = startPos;
+                        else if (blackKingPos == endPos) blackKingPos = startPos;
+                        
+                        if (isCapture)
+                        {
+                            if (capturedColor == Color::WHITE) {
+                                at(endPos) = std::move(whiteCaptured.back());
+                                whiteCaptured.pop_back();
+                            } else {
+                                at(endPos) = std::move(blackCaptured.back());
+                                blackCaptured.pop_back();
+                            }
+                        }
+                        
+                        if (!inCheck)
                             return true;
+                        }
                     }
                 }
             }
@@ -214,8 +210,8 @@ std::optional<Position<>> Board::findStartSquare(char pieceType, bool isWhiteToM
                     continue;
 
                 if (p->isValidMove(currentPos, endPos, getPiece(endPos)))
-                {
-                    if (pieceType == 'N' || isPathClear(currentPos, endPos))
+                {   
+                    if (isPathClear(p->getPath(currentPos, endPos)))
                     {
                         candidates.push_back(currentPos);
                     }
@@ -258,6 +254,8 @@ void Board::clearBoard()
     fullMoveNumber = 1;
     whiteCaptured.clear();
     blackCaptured.clear();
+    whiteKingPos = Position<>{-1, -1};
+    blackKingPos = Position<>{-1, -1};
 }
 
 bool Board::loadFromFEN(std::string_view fen)
@@ -323,6 +321,8 @@ bool Board::loadFromFEN(std::string_view fen)
                 break;
             case 'k':
                 Piece = std::make_unique<King>(color);
+                if (color == Color::WHITE) whiteKingPos = Position<>(x, y);
+                else blackKingPos = Position<>(x, y);
                 break;
             }
 
@@ -508,6 +508,9 @@ void Board::applyMove(const Move& m)
 
 void Board::undoMove(const Move& m)
 {
+        if (whiteKingPos == m.endPos && m.movedPiece == 'K') whiteKingPos = m.startPos;
+        else if (blackKingPos == m.endPos && m.movedPiece == 'K') blackKingPos = m.startPos;
+        
         nextTurn();
 
         makeMove(m.endPos, m.startPos);
@@ -610,6 +613,10 @@ void Board::makeMove(Position<> startPos, Position<> endPos)
 {
         if (!isOnBoard(startPos) || !isOnBoard(endPos))
             return;
+
+        if (startPos == whiteKingPos) whiteKingPos = endPos;
+        else if (startPos == blackKingPos) blackKingPos = endPos;
+
 
         Square &startSquare = at(startPos);
         Square &endSquare = at(endPos);

@@ -85,7 +85,8 @@ namespace BoardTests {
                         renderer.display();
                 #endif
 
-                EXPECT_TRUE(board.isPathClear(Position<>{0, 0}, Position<>{7, 0})); // a1 to h1
+                auto path = board.getPiece(Position<>{0, 0})->getPath(Position<>{0, 0}, Position<>{7, 0});
+                EXPECT_TRUE(board.isPathClear(path)); // a1 to h1
         }
         ENDM
 
@@ -100,7 +101,8 @@ namespace BoardTests {
                         renderer.display();
                 #endif
 
-                EXPECT_TRUE(board.isPathClear(Position<>{0, 0}, Position<>{7, 7})); // a1 to h8
+                auto path = board.getPiece(Position<>{0, 0})->getPath(Position<>{0, 0}, Position<>{7, 7});
+                EXPECT_TRUE(board.isPathClear(path)); // a1 to h8
         }
         ENDM
 
@@ -114,8 +116,9 @@ namespace BoardTests {
                         Renderer renderer(board);
                         renderer.display();
                 #endif
-
-                EXPECT_FALSE(board.isPathClear(Position<>{0, 0}, Position<>{7, 0})); // a1 to h1 blocked by d1
+                
+                auto path = board.getPiece(Position<>(0, 0))->getPath(Position<>{0, 0}, Position<>{7, 0});
+                EXPECT_FALSE(board.isPathClear(path)); // a1 to h1 blocked by d1
         }
         ENDM
 
@@ -131,7 +134,8 @@ namespace BoardTests {
                 #endif
 
                 // The path from a1 to h8 should be blocked by the pawn on d4 (x: 3, y: 3)
-                EXPECT_FALSE(board.isPathClear(Position<>{0, 0}, Position<>{7, 7}));
+                auto path = board.getPiece(Position<>{0, 0})->getPath(Position<>{0, 0}, Position<>{7, 7});
+                EXPECT_FALSE(board.isPathClear(path));
         }
         ENDM
 
@@ -229,8 +233,8 @@ namespace BoardTests {
                 #endif
 
                 // Kings should be found
-                EXPECT_TRUE(board.getPiece(Position<>{4, 0})->isKing());
-                EXPECT_TRUE(board.getPiece(Position<>{4, 7})->isKing());
+                EXPECT_TRUE((Position<>{4, 0} == board.getWhiteKingPos() || Position<>{4, 0} == board.getBlackKingPos()));
+                EXPECT_TRUE((Position<>{4, 7} == board.getWhiteKingPos() || Position<>{4, 7} == board.getBlackKingPos()));
 
                 board.clearBoard();
 
