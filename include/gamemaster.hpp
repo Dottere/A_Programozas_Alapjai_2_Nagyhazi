@@ -10,6 +10,7 @@
 
 class GameMaster
 {
+private:
     Board &board;
     const Renderer &renderer;
 
@@ -21,10 +22,26 @@ class GameMaster
     void gameLoop(PGNMetadata &metadata);
     void manualPlay(std::string_view fenStr);
     void replayPGN(std::string_view pgnFilePath);
+    void executeBoardMovement(const Move &move, int rookStartX, int rookEndX);
+    void rollbackInvalidMove(const Move &move);
+    void finalizeMove(Move &currentMove, int pointsGained = 0);
 
     [[nodiscard]] bool isValidInput(std::string_view userInput) const;
     [[nodiscard]] bool processMove(Position<> startPos, Position<> endPos, char promotedTo = '\0');
+    [[nodiscard]] bool isValidActivePiece(const Piece* p) const;
+    [[nodiscard]] bool isEnPassantMove(const Piece* p, Position<> startPos, Position<> endPos) const;
+    [[nodiscard]] bool validateCastlingRules(Position<> startPos, Position<> endPos, int &rookStartX, int &rookEndX) const;
 
+    [[nodiscard]] Move createMoveRecord
+    (
+        const Piece *p, 
+        Position<> startPos, 
+        Position<> endPos, 
+        char promotedTo, 
+        bool isEnPassant, 
+        bool isCastle, 
+        Piece *capturedPiece
+    ) const;
 
 public:
     GameMaster(Board &board, const Renderer &renderer)

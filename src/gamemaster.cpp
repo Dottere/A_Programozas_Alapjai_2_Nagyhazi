@@ -10,10 +10,145 @@
 #include <iomanip>
 #include <fstream>
 
-namespace
+bool GameMaster::isValidActivePiece(const Piece *p) const
 {
+    if (!p || p->getColor() != board.getTurn())
+    {
+        std::cerr << "Helytelen lépés: Nem te vagy soron, vagy üres mezőt választottál." << std::endl;
+        return false;
+    }
 
-};
+    return true;
+}
+bool GameMaster::isEnPassantMove(const Piece *p, Position<> startPos, Position<> endPos) const
+{
+    if (std::tolower(p->getPieceType()) == 'p' && endPos == board.getEnPassantTarget())
+    {
+        return std::abs(startPos.x - endPos.x) == 1;
+    }
+    return false;
+}
+bool GameMaster::validateCastlingRules(Position<> startPos, Position<> endPos, int &rookStartX, int &rookEndX) const
+{
+    if (board.isCheck(board.getTurn()))
+    {
+        std::cerr << "Helytelen lépés: Nem lehet a sakkot sáncolással megszakítani." << std::endl;
+        return false;
+    }
+
+    bool kingside = (endPos.x > startPos.x);
+    rookStartX = kingside ? 7 : 0; // h-file (7) or a-file (0)
+    rookEndX = kingside ? 5 : 3;   // f-file (5) or d-file (3)
+
+    const Piece *rook = board.getPiece(Position<>(rookStartX, startPos.y));
+
+    if (!rook || rook->getColor() != board.getTurn() || rook->getPieceType() != 'R' || rook->getHasMoved())
+    {
+        std::cerr << "Helytelen lépés: A bástya nincs a kezdőhelyén, vagy már egyszer elmozdult onnan." << std::endl;
+        return false;
+    }
+
+    if (!kingside && board.getPiece(Position<>(1, startPos.y)) != nullptr)
+    {
+        std::cerr << "Helytelen lépés: Nem szabad a király és bástya között az út." << std::endl;
+        return false;
+    }
+
+    int passX = kingside ? 5 : 3;
+    Board passCheckBoard(board);
+    passCheckBoard.makeMove(startPos, Position<>(passX, startPos.y));
+
+    if (passCheckBoard.isCheck(board.getTurn()))
+    {
+        std::cerr << "Helytelen lépés: Nem sáncolhatsz sakkon keresztül." << std::endl;
+        return false;
+    }
+
+    return true;
+}
+void GameMaster::executeBoardMovement(const Move &move, int rookStartX, int rookEndX)
+{
+    if (move.flags.isEnPassant)
+    {
+        board.removePiece(Position<>(move.endPos.x, move.startPos.y));
+    }
+
+    board.makeMove(move.startPos, move.endPos);
+
+    if (move.promotedTo != '\0')
+    {
+        Piece *movedPiece = board.getPiece(move.endPos);
+        board.promotePiece(move.endPos, move.promotedTo, movedPiece->getColor());
+    }
+
+    Piece *movedPiece = board.getPiece(move.endPos);
+    if (movedPiece)
+    {
+        movedPiece->setHasMoved(true);
+    }
+
+    if (move.flags.isCastle)
+    {
+        Position<> rookEndPos(rookEndX, move.startPos.y);
+        board.makeMove(Position<>(rookStartX, move.startPos.y), rookEndPos);
+        Piece *movedRook = board.getPiece(rookEndPos);
+        if (movedRook)
+        {
+            movedRook->setHasMoved(true);
+        }
+    }
+}
+void GameMaster::rollbackInvalidMove(const Move &move)
+{
+    board.undoMove(move);
+    board.nextTurn();
+    std::cerr << "Helytelen lépés: Nem léphetsz sakkba" << std::endl;
+}
+void GameMaster::finalizeMove(Move &currentMove, int pointsGained)
+{
+    if (currentMove.flags.isCapture && currentMove.capturedPieceType)
+    {
+        if (currentMove.capturedPieceColor == Color::WHITE)
+        {
+            pointsBlack += pointsGained;
+        }
+        else
+        {
+            pointsWhite += pointsGained;
+        }
+    }
+
+    Position<> nextEnPassantTarget{-1, -1};
+    if (std::tolower(currentMove.movedPiece) == 'p' && std::abs(currentMove.startPos.y - currentMove.endPos.y) == 2)
+    {
+        int skippedY = (currentMove.startPos.y + currentMove.endPos.y) / 2;
+        nextEnPassantTarget = Position<>(currentMove.startPos.x, skippedY);
+    }
+    board.setEnPassantTarget(nextEnPassantTarget);
+
+    Color opponentColor = (board.getTurn() == Color::WHITE) ? Color::BLACK : Color::WHITE;
+    currentMove.flags.isCheck = board.isCheck(opponentColor);
+    currentMove.flags.isCheckMate = board.isCheckMate(opponentColor);
+
+    moveHistory.push_back(currentMove);
+}
+
+Move GameMaster::createMoveRecord(const Piece *p, Position<> startPos, Position<> endPos, char promotedTo, bool isEnPassant, bool isCastle, Piece *capturedPiece) const
+{
+    bool isCapture = (capturedPiece != nullptr);
+    Position<> prevEP = board.getEnPassantTarget().value_or(Position<>{-1, -1});
+
+    return Move(
+        startPos, endPos,
+        Move::Flags{
+            .wasFirstMove = !p->getHasMoved(),
+            .isCapture = isCapture,
+            .isCastle = isCastle,
+            .isEnPassant = isEnPassant,
+            .isCheck = false,
+            .isCheckMate = false},
+        p->getPieceType(), promotedTo, capturedPiece, prevEP);
+}
 
 void GameMaster::gameLoop(PGNMetadata &metadata)
 {
@@ -22,12 +157,10 @@ void GameMaster::gameLoop(PGNMetadata &metadata)
 
     while (true)
     {
-        // 1. take input in some form, maybe pgn, maybe a more intuitive way for the player (more code more annoyance)
         std::cin >> userInput;
         for (char &c : userInput)
             c = std::tolower(c);
 
-        // 2. make into coords
         Position<> currentMoveStartPos;
         Position<> currentMoveEndPos;
         if (!isValidInput(userInput))
@@ -145,211 +278,70 @@ bool GameMaster::processMove(Position<> startPos, Position<> endPos, char promot
 {
     const Piece *p = board.getPiece(startPos);
 
-    if (!p || p->getColor() != board.getTurn())
+    if (!isValidActivePiece(p))
+        return false;
+
+    bool isEnPassant = isEnPassantMove(p, startPos, endPos);
+
+    if (!isEnPassant && !p->isValidMove(startPos, endPos, board.getPiece(endPos)))
     {
-        std::cerr << "Helytelen lépés: Nem te vagy soron." << std::endl;
+        std::cerr << "Helytelen lépés: Ez a bábu nem tud így lépni." << std::endl;
         return false;
     }
 
-    const Piece *target = board.getPiece(endPos);
-
-    // en passant
-    bool isEnPassant = false;
-    char pType = std::tolower(p->getPieceType());
-    if (pType == 'p' && endPos == board.getEnPassantTarget())
+    if (!p->canJump() && !board.isPathClear(startPos, endPos))
     {
-        if (std::abs(startPos.x - endPos.x) == 1)
-        {
-            isEnPassant = true;
-        }
+        std::cerr << "Helytelen lépés: Útban van egy bábu." << std::endl;
+        return false;
     }
 
-    if (isEnPassant || p->isValidMove(startPos, endPos, target))
+    int rookStartX = -1, rookEndX = -1;
+    bool isCastle = (p->isKing() && std::abs(startPos.x - endPos.x) == 2);
+
+    if (isCastle && !validateCastlingRules(startPos, endPos, rookStartX, rookEndX))
     {
-        if (p->canJump() || board.isPathClear(startPos, endPos))
-        {
-
-            // castling
-            bool isCastle = (p->isKing() && std::abs(startPos.x - endPos.x) == 2);
-            int rookStartX = -1;
-            int rookEndX = -1;
-
-            if (isCastle)
-            {
-                // Nem lehet sakkból kilépni sáncolással
-                if (board.isCheck(board.getTurn()))
-                {
-                    std::cerr << "Helytelen lépés: Nem lehet a sakkot sáncolással megszakítani." << std::endl;
-                    return false;
-                }
-
-                // Bástya megkeresése
-                bool kingside = (endPos.x > startPos.x);
-                rookStartX = kingside ? 7 : 0; // h-file (7) or a-file (0)
-                rookEndX = kingside ? 5 : 3;   // f-file (5) or d-file (3)
-
-                Position<> rookStartPos(rookStartX, startPos.y);
-                const Piece *rook = board.getPiece(rookStartPos);
-
-                // 3. Megnézzük hogy a bástya ott van-e illetve, hogy lépett-e már
-                if (!rook || rook->getColor() != board.getTurn() || rook->getPieceType() != 'R' || rook->getHasMoved())
-                {
-                    std::cerr << "Helytelen lépés: A bástya nincs a kezdőhelyén, vagy már egyszer elmozdult onnan." << std::endl;
-                    return false;
-                }
-
-                // 4. Ha a királynő felé akarunk sáncolni akkor meg kell nézni a B oszlopot is
-                if (!kingside)
-                {
-                    Position<> bSquare(1, startPos.y);
-                    if (board.getPiece(bSquare) != nullptr)
-                    {
-                        std::cerr << "Helytelen lépés: Nem szabad a király és bástya között az út." << std::endl;
-                        return false;
-                    }
-                }
-
-                // 5. Nem lehet sáncolni ha a kezdő és végpont között sakkban lennénk
-                int passX = kingside ? 5 : 3;
-                Board passCheckBoard(board);
-                passCheckBoard.movePiece(startPos, Position<>(passX, startPos.y));
-
-                if (passCheckBoard.isCheck(board.getTurn()))
-                {
-                    std::cerr << "Helytelen lépés: Nem sáncolhatsz sakkon keresztül." << std::endl;
-                    return false;
-                }
-            }
-
-            // simulation
-            Board clonedBoard(board);
-            clonedBoard.movePiece(startPos, endPos);
-
-            if (isEnPassant)
-            {
-                clonedBoard.removePiece(Position<>(endPos.x, startPos.y));
-            }
-
-            if (isCastle)
-            {
-                clonedBoard.movePiece(Position<>(rookStartX, startPos.y), Position<>(rookEndX, startPos.y));
-            }
-
-            if (clonedBoard.isCheck(board.getTurn()))
-            {
-                std::cerr << "Helytelen lépés: Nem léphetsz sakkba." << std::endl;
-                return false;
-            }
-
-            Piece *capturedPiece = nullptr;
-            if (isEnPassant)
-            {
-                capturedPiece = const_cast<Piece *>(board.getPiece(Position<>(endPos.x, startPos.y)));
-            }
-            else
-            {
-                capturedPiece = const_cast<Piece *>(target);
-            }
-
-            bool isCapture = (capturedPiece);
-            char movedPieceChar = p->getPieceType();
-
-            // real move
-
-            if (isEnPassant)
-            {
-                board.removePiece(Position<>(endPos.x, startPos.y));
-            }
-
-            if (isCapture)
-            {
-                capturedPiece->getColor() == Color::WHITE ? pointsBlack += capturedPiece->getValue()
-                                                          : pointsWhite += capturedPiece->getValue();
-            }
-
-            board.movePiece(startPos, endPos);
-
-            if (promotedTo != '\0')
-            {
-                board.promotePiece(endPos, promotedTo, p->getColor());
-            }
-
-            Piece *movedPiece = board.getPiece(endPos);
-            if (movedPiece)
-            {
-                movedPiece->setHasMoved();
-            }
-
-            if (isCastle)
-            {
-                Position<> rookEndPos(rookEndX, startPos.y);
-
-                board.movePiece(Position<>(rookStartX, startPos.y), rookEndPos);
-
-                Piece *movedRook = board.getPiece(rookEndPos);
-                if (movedRook)
-                {
-                    movedRook->setHasMoved();
-                }
-            }
-
-            Position<> nextEnPassantTarget{-1, -1};
-
-            if (pType == 'p')
-            {
-                if (std::abs(startPos.y - endPos.y) == 2)
-                {
-                    int skippedY = (startPos.y + endPos.y) / 2;
-                    nextEnPassantTarget = Position<>(startPos.x, skippedY);
-                }
-            }
-
-            board.setEnPassantTarget(nextEnPassantTarget);
-
-            Color opponentColor = (board.getTurn() == Color::WHITE) ? Color::BLACK : Color::WHITE;
-
-            bool isCheckMove = board.isCheck(opponentColor);
-            bool isCheckMateMove = board.isCheckMate(opponentColor);
-
-            moveHistory.emplace_back(
-                startPos,
-                endPos,
-                Move::Flags{
-                    .isCapture = isCapture,
-                    .isCastle = isCastle,
-                    .isEnPassant = isEnPassant,
-                    .isCheck = isCheckMove,
-                    .isCheckMate = isCheckMateMove,
-                },
-                movedPieceChar,
-                promotedTo,
-                capturedPiece);
-
-            return true;
-        }
+        return false;
     }
-    std::cerr << "Helytelen lépés: Ez a bábu nem tud így lépni." << std::endl;
-    return false;
+
+    Piece *capturedPiece = isEnPassant ? board.getPiece(Position<>(endPos.x, startPos.y)) : board.getPiece(endPos);
+
+    int pointsGained = capturedPiece ? capturedPiece->getValue() : 0;
+
+    Move currentMove = createMoveRecord(p, startPos, endPos, promotedTo, isEnPassant, isCastle, capturedPiece);
+
+    executeBoardMovement(currentMove, rookStartX, rookEndX);
+
+    if (board.isCheck(board.getTurn()))
+    {
+        rollbackInvalidMove(currentMove);
+        return false;
+    }
+
+    finalizeMove(currentMove, pointsGained);
+
+    return true;
 }
 
 bool GameMaster::isValidInput(std::string_view userInput) const
 {
     if (userInput == "forfeit" || userInput == "ff" || userInput == "draw" ||
-        userInput == "o-o" || userInput == "0-0" || 
-        userInput == "o-o-o" || userInput == "0-0-0") 
+        userInput == "o-o" || userInput == "0-0" ||
+        userInput == "o-o-o" || userInput == "0-0-0")
         return true;
 
-    if (userInput.length() < 4 || userInput.length() > 5) 
+    if (userInput.length() < 4 || userInput.length() > 5)
         return false;
 
-    bool validStart = (userInput[0] >= 'a' && userInput[0] <= 'h') && 
+    bool validStart = (userInput[0] >= 'a' && userInput[0] <= 'h') &&
                       (userInput[1] >= '1' && userInput[1] <= '8');
-    bool validEnd   = (userInput[2] >= 'a' && userInput[2] <= 'h') && 
-                      (userInput[3] >= '1' && userInput[3] <= '8');
+    bool validEnd = (userInput[2] >= 'a' && userInput[2] <= 'h') &&
+                    (userInput[3] >= '1' && userInput[3] <= '8');
 
-    if (!validStart || !validEnd) return false;
+    if (!validStart || !validEnd)
+        return false;
 
-    if (userInput.length() == 5) {
+    if (userInput.length() == 5)
+    {
         char p = static_cast<char>(std::tolower(userInput[4]));
         return p == 'q' || p == 'r' || p == 'b' || p == 'n';
     }
@@ -377,10 +369,8 @@ void GameMaster::replayPGN(std::string_view pgnFilePath)
     std::string startingFen = metadata.fen.empty() ? std::string(DEFAULT_FEN) : metadata.fen;
 
     int currentMoveIndex = 0;
-    std::vector<std::string> historyStates;
 
     board.loadFromFEN(startingFen);
-    historyStates.push_back(board.generateFEN());
 
     renderer.display(pointsWhite, pointsBlack);
 
@@ -397,47 +387,14 @@ void GameMaster::replayPGN(std::string_view pgnFilePath)
         }
         else if (input == 'n' && static_cast<size_t>(currentMoveIndex) < moveHistory.size())
         {
-            const auto &m = moveHistory[currentMoveIndex];
-
-            board.movePiece(m.startPos, m.endPos);
-            if (m.flags.isCastle)
-            {
-                using namespace CASTLING_POSITION_CONSTANTS;
-                if (m.endPos.x == KING_DEST_KINGSIDE_X)
-                {
-                    board.movePiece(Position<>(ROOK_START_KINGSIDE_X, m.startPos.y), Position<>(ROOK_DEST_KINGSIDE_X, m.startPos.y));
-                }
-                else if (m.endPos.x == KING_DEST_QUEENSIDE_X)
-                {
-                    board.movePiece(Position<>(ROOK_START_QUEENSIDE_X, m.startPos.y), Position<>(ROOK_DEST_QUEENSIDE_X, m.startPos.y));
-                }
-            }
-            else if (m.flags.isEnPassant)
-            {
-                board.removePiece(Position<>(m.endPos.x, m.startPos.y));
-            }
-            else if (m.promotedTo != '\0')
-            {
-                board.promotePiece(m.endPos, m.promotedTo, board.getTurn());
-            }
-            board.nextTurn();
-
+            board.applyMove(moveHistory[currentMoveIndex]);
             currentMoveIndex++;
-            if (static_cast<size_t>(currentMoveIndex) >= historyStates.size())
-            {
-                historyStates.push_back(board.generateFEN());
-            }
-
             renderer.display(pointsWhite, pointsBlack);
         }
         else if (input == 'p' && currentMoveIndex > 0)
         {
             currentMoveIndex--;
-            
-            LOG_DEBUG("Loading FEN: " + historyStates[currentMoveIndex]);
-
-            board.loadFromFEN(historyStates[currentMoveIndex]);
-
+            board.undoMove(moveHistory[currentMoveIndex]);
             renderer.display(pointsWhite, pointsBlack);
         }
     }
