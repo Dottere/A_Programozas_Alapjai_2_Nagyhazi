@@ -51,10 +51,10 @@ Board::Board(const Board &b)
     this->whiteCaptured.clear();
     this->blackCaptured.clear();
 
-    this->canWhiteCastleKingside = b.canWhiteCastleKingside;
-    this->canWhiteCastleQueenside = b.canWhiteCastleQueenside;
-    this->canBlackCastleKingside = b.canBlackCastleKingside;
-    this->canBlackCastleQueenside = b.canBlackCastleQueenside;
+    this->castlingRight.whiteKingside = b.castlingRight.whiteKingside;
+    this->castlingRight.whiteQueenside = b.castlingRight.whiteQueenside;
+    this->castlingRight.blackKingside = b.castlingRight.blackKingside;
+    this->castlingRight.blackQueenside = b.castlingRight.blackQueenside;
 
     this->enPassantTarget = b.enPassantTarget;
 
@@ -107,12 +107,9 @@ bool Board::isPathClear(Position<> startPos, Position<> endPos) const
 bool Board::placePiece(Square piece, Position<> pos)
 {
     if (!isOnBoard(pos))
-        return false;
+        return false;;
 
-    // A tömb a bal felső sarokban kezdi az indexelést, míg a sakk szabályai a bal alsó sarokban
-    auto arrayY = 7 - pos.y;
-
-    board[pos.x][arrayY] = std::move(piece);
+    at(pos) = std::move(piece);
     return true;
 }
 
@@ -176,7 +173,7 @@ bool Board::hasLegalMoves(Color c)
                         (p->canJump() || isPathClear(startPos, endPos)))
                     {
                         Board clonedBoard(*this);
-                        clonedBoard.movePiece(startPos, endPos);
+                        clonedBoard.makeMove(startPos, endPos);
                         if (!clonedBoard.isCheck(c))
                             return true;
                     }
@@ -252,8 +249,7 @@ void Board::clearBoard()
     }
 
     turn = Color::WHITE;
-    canWhiteCastleKingside = canWhiteCastleQueenside = false;
-    canBlackCastleKingside = canBlackCastleQueenside = false;
+    castlingRight = {0};
     enPassantTarget.reset();
     halfMoveClock = 0;
     fullMoveNumber = 1;
@@ -351,16 +347,16 @@ bool Board::loadFromFEN(std::string_view fen)
             switch (c)
             {
             case 'K':
-                canWhiteCastleKingside = true;
+                castlingRight.whiteKingside = true;
                 break;
             case 'Q':
-                canWhiteCastleQueenside = true;
+                castlingRight.whiteQueenside = true;
                 break;
             case 'k':
-                canBlackCastleKingside = true;
+                castlingRight.blackKingside = true;
                 break;
             case 'q':
-                canBlackCastleQueenside = true;
+                castlingRight.blackQueenside = true;
                 break;
             }
         }
@@ -430,19 +426,19 @@ std::string Board::generateFEN() const
     fen += (turn == Color::WHITE ? " w " : " b ");
 
     size_t castlingStart = fen.size();
-    if (canWhiteCastleKingside)
+    if (castlingRight.whiteKingside)
     {
         fen += 'K';
     }
-    if (canWhiteCastleQueenside)
+    if (castlingRight.whiteQueenside)
     {
         fen += 'Q';
     }
-    if (canBlackCastleKingside)
+    if (castlingRight.blackKingside)
     {
         fen += 'k';
     }
-    if (canBlackCastleQueenside)
+    if (castlingRight.blackQueenside)
     {
         fen += 'q';
     }
@@ -469,4 +465,166 @@ std::string Board::generateFEN() const
     fen += std::to_string(fullMoveNumber);
 
     return fen;
+}
+
+void Board::applyMove(const Move& m)
+    {
+        if (m.flags.isEnPassant) {
+            removePiece(Position<>(m.endPos.x, m.startPos.y));
+        }
+
+        makeMove(m.startPos, m.endPos);
+
+        if (m.promotedTo != '\0') {
+            promotePiece(m.endPos, m.promotedTo, getTurn());
+        }
+
+        Piece *movedPiece = getPiece(m.endPos);
+        if (movedPiece) {
+            movedPiece->setHasMoved(true);
+        }
+
+        if (m.flags.isCastle) {
+            bool kingside = (m.endPos.x > m.startPos.x);
+            int rookStartX = kingside ? 7 : 0;
+            int rookDestX = kingside ? 5 : 3;
+
+            makeMove(Position<>(rookStartX, m.startPos.y), Position<>(rookDestX, m.startPos.y));
+            Piece *movedRook = getPiece(Position<>(rookDestX, m.startPos.y));
+            if (movedRook) movedRook->setHasMoved(true);
+        }
+
+        Position<> nextEnPassantTarget{-1, -1};
+        if (std::tolower(m.movedPiece) == 'p' && std::abs(m.startPos.y - m.endPos.y) == 2) {
+            nextEnPassantTarget = Position<>(m.startPos.x, (m.startPos.y + m.endPos.y) / 2);
+        }
+        setEnPassantTarget(nextEnPassantTarget);
+
+        nextTurn();
+    }
+
+void Board::undoMove(const Move& m)
+{
+        nextTurn();
+
+        makeMove(m.endPos, m.startPos);
+
+        if (m.promotedTo != '\0')
+        {
+            at(m.startPos) = std::make_unique<Pawn>(getPiece(m.startPos)->getColor());
+        }
+
+        if (m.flags.isCastle)
+        {
+            bool kingside = (m.endPos.x > m.startPos.x);
+            int rookDestX = kingside ? 5 : 3;
+            int rookStartX = kingside ? 7 : 0;
+
+            makeMove(Position<>{rookDestX, m.startPos.y}, Position<>{rookStartX, m.startPos.y});
+
+            at(m.startPos)->setHasMoved(false);
+            at(Position<>(rookStartX, m.startPos.y))->setHasMoved(false);
+        }
+        else
+        {
+            if (m.flags.wasFirstMove) at(m.startPos)->setHasMoved(false);
+        }
+
+        if (m.flags.isCapture) 
+        {
+            Square revivedPiece;
+
+            if (m.capturedPieceColor == Color::WHITE) 
+            {
+                revivedPiece = std::move(whiteCaptured.back());
+                whiteCaptured.pop_back();
+            }
+            else
+            {
+                revivedPiece = std::move(blackCaptured.back());
+                blackCaptured.pop_back();
+            }
+
+            if (m.flags.isEnPassant) 
+            {
+                Position<> epPawnPos{m.endPos.x, m.startPos.y};
+                if (!placePiece(std::move(revivedPiece), epPawnPos));
+            }
+            else
+            {   
+                if(placePiece(std::move(revivedPiece), m.endPos));
+            }
+        }
+        
+        enPassantTarget = m.prevEnPassantTarget;
+        castlingRight = m.prevCastlingRights;
+    }
+
+void Board::promotePiece(Position<> pos, char promotedTo, Color pieceColor)
+{
+        if (!isOnBoard(pos))
+            return;
+        Square &sq = at(pos);
+
+        if (!sq)
+            return;
+
+        switch (std::tolower(static_cast<unsigned char>(promotedTo)))
+        {
+        case 'q':
+            sq = std::make_unique<Queen>(pieceColor);
+            break;
+        case 'r':
+            sq = std::make_unique<Rook>(pieceColor);
+            break;
+        case 'b':
+            sq = std::make_unique<Bishop>(pieceColor);
+            break;
+        case 'n':
+            sq = std::make_unique<Knight>(pieceColor);
+            break;
+        }
+    }
+
+void Board::removePiece(Position<> pos)
+    {
+        if (!isOnBoard(pos))
+            return;
+
+        Square &sq = at(pos);
+
+        if (sq)
+        {
+            if (sq->isWhite())
+                whiteCaptured.push_back(std::move(sq));
+            else
+                blackCaptured.push_back(std::move(sq));
+        }
+        sq.reset();
+    }
+
+void Board::makeMove(Position<> startPos, Position<> endPos)
+{
+        if (!isOnBoard(startPos) || !isOnBoard(endPos))
+            return;
+
+        Square &startSquare = at(startPos);
+        Square &endSquare = at(endPos);
+
+        if (!startSquare)
+            return;
+
+        if (auto &target = endSquare)
+        {
+            if (target->isWhite())
+            {
+                whiteCaptured.push_back(std::move(target));
+            }
+            else
+            {
+                blackCaptured.push_back(std::move(target));
+            }
+        }
+
+        endSquare = std::move(startSquare);
 }

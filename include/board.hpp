@@ -10,6 +10,7 @@
 #include <string>
 #include <string_view>
 #include <optional>
+#include <cstdint>
 
 /*
  * Ez a fejlécfájl lesz felelős a tábla kezeléséért, a bábuk reprezentációjáért. A tábla önmagában egy 8x8-as tömb,
@@ -36,10 +37,7 @@ class Board
 
     Color turn = Color::WHITE;
 
-    bool canWhiteCastleKingside = false;
-    bool canWhiteCastleQueenside = false;
-    bool canBlackCastleKingside = false;
-    bool canBlackCastleQueenside = false;
+    castlingRights castlingRight;
 
     std::optional<Position<>> enPassantTarget;
 
@@ -96,94 +94,24 @@ public:
 
     [[nodiscard]] bool isWhiteToMove() const { return (turn == Color::WHITE); }
     [[nodiscard]] Color getTurn() const { return turn; }
+
     void nextTurn() { turn = (turn == Color::WHITE) ? Color::BLACK : Color::WHITE; }
     void clearBoard();
 
-    /**
-     * @brief Betölt egy pozíciót egy FEN-ben kódolt sztringből
-     *
-     * A FEN (Forsyth-Edwards Notation) egy olyan jelölési módszer, amely egy fényképet készít a jelenlegi pozícióról. A PGN-nel
-     * ellentétben nem kontextusfüggő, bármikor betölthető a tábla teljes állapota belőle.
-     *
-     * @param fen A sztring mely tartalmazza a FEN jelölést
-     *
-     * @return Igaz/True ha megtörtént a betöltés, Hamis/False ha nem
-     */
     bool loadFromFEN(std::string_view fen);
 
-    // Hasonlóképp működik mint a placePiece() függvény, viszont ez nem dolgozik explicit bábumutatóval, hanem csak egy kezdő
-    // és egy végpozíciót bekérve teszi meg az áthelyezést.
-    void movePiece(Position<> startPos, Position<> endPos)
-    {
-        if (!isOnBoard(startPos) || !isOnBoard(endPos))
-            return;
+    void makeMove(Position<> startPos, Position<> endPos);
 
-        Square &startSquare = at(startPos);
-        Square &endSquare = at(endPos);
+    [[nodiscard]] std::string generateFEN() const;
 
-        if (!startSquare)
-            return;
-
-        if (auto &target = endSquare)
-        {
-            if (target->isWhite())
-            {
-                whiteCaptured.push_back(std::move(target));
-            }
-            else
-            {
-                blackCaptured.push_back(std::move(target));
-            }
-        }
-
-        endSquare = std::move(startSquare);
-    }
-
-    std::string generateFEN() const;
-
-    void removePiece(Position<> pos)
-    {
-        if (!isOnBoard(pos))
-            return;
-
-        Square &sq = at(pos);
-
-        if (sq)
-        {
-            if (sq->isWhite())
-                whiteCaptured.push_back(std::move(sq));
-            else
-                blackCaptured.push_back(std::move(sq));
-        }
-        sq.reset();
-    }
+    void removePiece(Position<> pos);
 
     void setEnPassantTarget(Position<> target) { enPassantTarget = target; }
-    std::optional<Position<>> getEnPassantTarget() const { return enPassantTarget; }
+    [[nodiscard]]std::optional<Position<>> getEnPassantTarget() const { return enPassantTarget; }
 
-    void promotePiece(Position<> pos, char promotedTo, Color pieceColor)
-    {
-        if (!isOnBoard(pos))
-            return;
-        Square &sq = at(pos);
+    void promotePiece(Position<> pos, char promotedTo, Color pieceColor);
 
-        if (!sq)
-            return;
+    void undoMove(const Move& m);
 
-        switch (std::tolower(static_cast<unsigned char>(promotedTo)))
-        {
-        case 'q':
-            sq = std::make_unique<Queen>(pieceColor);
-            break;
-        case 'r':
-            sq = std::make_unique<Rook>(pieceColor);
-            break;
-        case 'b':
-            sq = std::make_unique<Bishop>(pieceColor);
-            break;
-        case 'n':
-            sq = std::make_unique<Knight>(pieceColor);
-            break;
-        }
-    }
+    void applyMove(const Move& m);
 };
