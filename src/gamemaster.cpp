@@ -366,6 +366,13 @@ void GameMaster::replayPGN(std::string_view pgnFilePath)
     auto parsed = PGNHandler::parseFile(pgnFilePath, board).value_or(std::make_pair(PGNMetadata{}, std::vector<Move>{}));
     auto metadata = parsed.first;
     this->moveHistory = parsed.second;
+
+    if (this->moveHistory.empty()) 
+    {
+        LOG_ERROR("A kért fájl nem létezik!");
+        return;
+    }
+
     std::string startingFen = metadata.fen.empty() ? std::string(DEFAULT_FEN) : metadata.fen;
 
     int currentMoveIndex = 0;

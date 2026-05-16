@@ -3,8 +3,10 @@
 #include "board.hpp"
 #include "renderer.hpp"
 #include "pgnhandler.hpp"
+#include "gamemaster.hpp"
 
 #include <iostream>
+#include <fstream>
 #include <filesystem>
 #include <string>
 
@@ -411,12 +413,44 @@ namespace PGNTests {
         }
 }
 
+namespace GameMasterTests {
+    void testGameMasterFunctions()
+    {
+
+        TEST(GameMasterTest, ConstructGameMasterSuccessfully)
+        {
+            Board board;
+            Renderer renderer(board);
+            
+            // UPDATED: Constructed GameMaster using your cleaned up parameter list 
+            // (no longer attempts to decode time tracking configurations).
+            GameMaster gm(board, renderer);
+            
+            EXPECT_TRUE(true);
+        }
+        ENDM
+
+        TEST(GameMasterTest, ExecutingRunWithInvalidFilesDoesNotCrash)
+        {
+            Board board;
+            Renderer renderer(board);
+            GameMaster gm(board, renderer);
+
+            gm.run(std::string(DEFAULT_FEN), "non_existent_game_flow.pgn");
+
+            EXPECT_TRUE(true);
+        }
+        ENDM
+    }
+}
+
 int main()
 {
         GTINIT(std::cin);
 
         BoardTests::testBoardFunctions();
         PGNTests::testPGNFunctions();
+        GameMasterTests::testGameMasterFunctions();
 
         GTEND(std::cerr);
 
