@@ -8,13 +8,19 @@
 #include "board.hpp"
 
 #include <string>
+#include <sstream>
+#include <iomanip>
 
 class Renderer
 {
+private:
     const Board &board;
+
+    void renderInternal(bool showUI, int whitePoints = 0, int blackPoints = 0) const;
+
 
 public:
     Renderer(const Board &board) : board(board) {}
-    void display(int whitePoints, int blackPoints) const;
+    void display(int whitePoints = 0, int blackPoints = 0) const;
     void display() const;
 };

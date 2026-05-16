@@ -27,3 +27,9 @@ enum class PIECE_VALUES
     QUEEN = 9,
     KING = 10
 };
+
+constexpr std::string_view RESET = "\033[0m";
+constexpr std::string_view P1_COLOR = "\033[97m"; 
+constexpr std::string_view P2_COLOR = "\033[30m"; 
+constexpr std::string_view BG_WHITE = "\033[47m"; 
+constexpr std::string_view BG_DARK = "\033[42m";
