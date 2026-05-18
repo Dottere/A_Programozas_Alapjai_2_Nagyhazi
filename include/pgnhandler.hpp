@@ -6,14 +6,13 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include <optional>
 
 class Board;
 
 namespace PGNHandler
 {
 
-    [[nodiscard]] std::optional<std::pair<PGNMetadata, std::vector<Move>>> parseFile(
+    [[nodiscard]] std::pair<PGNMetadata, std::vector<Move>> parseFile(
         std::filesystem::path filePath,
         const Board &initialBoard);
 

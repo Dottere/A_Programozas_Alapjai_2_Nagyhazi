@@ -1,13 +1,13 @@
 #include "pgnhandler.hpp"
 #include "gamemaster.hpp"
 #include "logger.hpp"
+#include "exceptions.h"
 
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>
 #include <regex>
-#include <optional>
 
 namespace
 {
@@ -24,11 +24,11 @@ namespace
      */
     std::regex SAN_REGEX(R"([KQRBN]?[a-h]?[1-8]?x?[a-h][1-8](?:=[QRBN])?[\+#]?|O-O(?:-O)?)");
 
-    std::optional<Move> sanToMoveObj(std::string sanMove, Board &board, bool isWhiteToMove)
+    Move sanToMoveObj(std::string sanMove, Board &board, bool isWhiteToMove)
     {
 
         if (sanMove.empty())
-            return std::nullopt;
+            throw ChessExcept::MissingResourceException("SAN move is missing!");
 
         bool isCapture = false;
         bool isCastle = false;
@@ -136,7 +136,7 @@ namespace
         }
         else
         {
-            return std::nullopt;
+            throw ChessExcept::MissingResourceException("Couldn't find starting position of: " + movedPiece);
         }
 
         if (isCapture)
@@ -214,16 +214,16 @@ namespace
 
 namespace PGNHandler
 {
-    std::optional<std::pair<PGNMetadata, std::vector<Move>>> parseFile(std::filesystem::path filePath, const Board &initialBoard)
+    std::pair<PGNMetadata, std::vector<Move>> parseFile(std::filesystem::path filePath, const Board &initialBoard)
     {
         PGNMetadata metadata;
         std::vector<Move> parsedMoves;
         std::ifstream file(filePath);
         std::string line;
 
-        if (!file.is_open())
+        if (!file)
         {
-            return std::nullopt;
+            throw ChessExcept::NonexistentPGNFileException("Hiba: Nem nyitható meg ez a fájl: \"" + std::string(filePath) + "\"!");
         }
 
         std::ostringstream rawTextStream;
@@ -284,11 +284,12 @@ namespace PGNHandler
 
             LOG_DEBUG("sanMove: " + sanMove);
 
-            auto currentMove = sanToMoveObj(sanMove, simBoard, isWhiteToMove).value_or(Move{{-1, -1}, {-1, -1}, {}, '\0', '\0', nullptr, {-1, -1}, {}});
+            Move currentMove{{-1, -1}, {-1, -1}, {}, '\0', '\0', nullptr, {}, {}};
 
-            if (currentMove.startPos.x == -1)
+            try {currentMove = sanToMoveObj(sanMove, simBoard, isWhiteToMove);}
+            catch (const ChessExcept::MissingResourceException& e)
             {
-                std::cerr << "Hiba: Hibás PGN lépés: " << sanMove << ". Lehet, hogy hibás a PGN?\n";
+                std::cerr << e.what() << '\n';
                 break;
             }
 
@@ -313,7 +314,7 @@ namespace PGNHandler
             isWhiteToMove = !isWhiteToMove;
         }
 
-        return std::make_pair(metadata, parsedMoves);
+        return {std::move(metadata), std::move(parsedMoves)};
     }
 
     std::string generatePGN(const PGNMetadata &metadata, const std::vector<Move> &history)
@@ -463,7 +464,10 @@ namespace PGNHandler
             }
             else
             {
-                std::cerr << "Hiba: Nem lehetett megnyitni a fájlt az íráshoz!" << std::endl;
+                throw ChessExcept::NonexistentPGNFileException
+                (
+                    "Hiba: Nem lehetett megnyitni a fájlt az íráshoz: \"" + std::string(filename) + "\"!"
+                );
             }
         }
     }

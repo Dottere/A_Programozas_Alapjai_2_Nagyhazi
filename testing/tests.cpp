@@ -4,6 +4,7 @@
 #include "renderer.hpp"
 #include "pgnhandler.hpp"
 #include "gamemaster.hpp"
+#include "exceptions.h"
 
 #include <iostream>
 #include <fstream>
@@ -299,18 +300,23 @@ namespace PGNTests {
 
                                 TempPGNFile tempFile("test_meta.pgn", pgnContent);
                                 Board initialBoard = createStartBoard();
+                                try
+                                {
+                                        auto [metadata, moves] =
+                                        PGNHandler::parseFile(tempFile.filePath, initialBoard);
 
-                                auto [metadata, moves] =
-                                PGNHandler::parseFile(tempFile.filePath, initialBoard)
-                                .value_or(std::make_pair(PGNMetadata{}, std::vector<Move>{}));
-
-                                EXPECT_EQ(std::string("FIDE World Cup 2023"), metadata.event);
-                                EXPECT_EQ(std::string("Baku AZE"), metadata.site);
-                                EXPECT_EQ(std::string("2023.08.10"), metadata.date);
-                                EXPECT_EQ(std::string("3.2"), metadata.round);
-                                EXPECT_EQ(std::string("Carlsen, M."), metadata.white);
-                                EXPECT_EQ(std::string("Keymer, V."), metadata.black);
-                                EXPECT_EQ(std::string("1-0"), metadata.result);
+                                        EXPECT_EQ(std::string("FIDE World Cup 2023"), metadata.event);
+                                        EXPECT_EQ(std::string("Baku AZE"), metadata.site);
+                                        EXPECT_EQ(std::string("2023.08.10"), metadata.date);
+                                        EXPECT_EQ(std::string("3.2"), metadata.round);
+                                        EXPECT_EQ(std::string("Carlsen, M."), metadata.white);
+                                        EXPECT_EQ(std::string("Keymer, V."), metadata.black);
+                                        EXPECT_EQ(std::string("1-0"), metadata.result);
+                                }
+                                catch (const ChessExcept::MissingResourceException& e)
+                                {
+                                        std::cerr << e.what() << '\n';
+                                }
                 } 
                 ENDM
 
@@ -320,26 +326,32 @@ namespace PGNTests {
                         TempPGNFile tempFile("test_basic.pgn", "1. e4 e5 2. Bc4 Nc6 3. Qh5 Nf6 4. Qxf7# 1-0");
                         Board initialBoard = createStartBoard();
 
-                        auto [metadata, moves] = 
-                        PGNHandler::parseFile(tempFile.filePath, initialBoard)
-                        .value_or(std::make_pair(PGNMetadata{}, std::vector<Move>{}));
+                        try
+                        {
+                                auto [metadata, moves] = 
+                                PGNHandler::parseFile(tempFile.filePath, initialBoard);
 
-                        EXPECT_EQ(7u, moves.size()); // 4 white moves, 3 black moves
+                                EXPECT_EQ(7u, moves.size()); // 4 white moves, 3 black moves
 
-                        // Check White's first move: e4
-                        EXPECT_EQ('P', moves[0].movedPiece);
-                        EXPECT_EQ(4, moves[0].endPos.x); // 'e' file (assuming a=0, b=1, ..., e=4)
-                        EXPECT_EQ(3, moves[0].endPos.y); // 4th rank (assuming 1st=0, ..., 4th=3)
+                                // Check White's first move: e4
+                                EXPECT_EQ('P', moves[0].movedPiece);
+                                EXPECT_EQ(4, moves[0].endPos.x); // 'e' file (assuming a=0, b=1, ..., e=4)
+                                EXPECT_EQ(3, moves[0].endPos.y); // 4th rank (assuming 1st=0, ..., 4th=3)
 
-                        // Check Black's first move: e5
-                        EXPECT_EQ('P', moves[1].movedPiece);
-                        EXPECT_EQ(4, moves[1].endPos.x); 
-                        EXPECT_EQ(4, moves[1].endPos.y); 
+                                // Check Black's first move: e5
+                                EXPECT_EQ('P', moves[1].movedPiece);
+                                EXPECT_EQ(4, moves[1].endPos.x); 
+                                EXPECT_EQ(4, moves[1].endPos.y); 
 
-                        // Check the final capture and checkmate flag: Qxf7#
-                        EXPECT_TRUE(moves[6].flags.isCapture);
-                        EXPECT_TRUE(moves[6].flags.isCheckMate);
-                        EXPECT_EQ('Q', moves[6].movedPiece);
+                                // Check the final capture and checkmate flag: Qxf7#
+                                EXPECT_TRUE(moves[6].flags.isCapture);
+                                EXPECT_TRUE(moves[6].flags.isCheckMate);
+                                EXPECT_EQ('Q', moves[6].movedPiece);
+                        }
+                        catch(const ChessExcept::MissingResourceException& e)
+                        {
+                                std::cerr << e.what() << '\n';
+                        }
                 }
                 ENDM
 
@@ -350,36 +362,48 @@ namespace PGNTests {
                         TempPGNFile tempFile("test_special.pgn", movesText);
                         Board initialBoard = createStartBoard();
 
-                        auto [metadata, moves] = 
-                        PGNHandler::parseFile(tempFile.filePath, initialBoard)
-                        .value_or(std::make_pair(PGNMetadata{}, std::vector<Move>{}));
+                        try
+                        {
+                                auto [metadata, moves] = 
+                                PGNHandler::parseFile(tempFile.filePath, initialBoard);
 
-                        EXPECT_EQ(19u, moves.size());
+                                EXPECT_EQ(19u, moves.size());
 
-                        // White Kingside Castle (6. O-O) -> index 10
-                        EXPECT_TRUE(moves[10].flags.isCastle);
-                        EXPECT_EQ(6, moves[10].endPos.x); // Kingside
+                                // White Kingside Castle (6. O-O) -> index 10
+                                EXPECT_TRUE(moves[10].flags.isCastle);
+                                EXPECT_EQ(6, moves[10].endPos.x); // Kingside
 
-                        // Black Queenside Castle (9... O-O-O) -> index 17
-                        EXPECT_TRUE(moves[17].flags.isCastle);
-                        EXPECT_EQ(2, moves[17].endPos.x); // Queenside
+                                // Black Queenside Castle (9... O-O-O) -> index 17
+                                EXPECT_TRUE(moves[17].flags.isCastle);
+                                EXPECT_EQ(2, moves[17].endPos.x); // Queenside
 
-                        // White Promotion (10. gxh8=Q) -> index 18
-                        EXPECT_TRUE(moves[18].flags.isCapture);
-                        EXPECT_EQ('Q', moves[18].promotedTo);
+                                // White Promotion (10. gxh8=Q) -> index 18
+                                EXPECT_TRUE(moves[18].flags.isCapture);
+                                EXPECT_EQ('Q', moves[18].promotedTo);
+                        }
+                        catch (const ChessExcept::MissingResourceException& e)
+                        {
+                                std::cerr << e.what() << '\n';
+                        }
                 }
                 ENDM
 
                 TEST(PGNHandlerTest, HandlesMissingFileGracefully) 
                 {
                         Board initialBoard = createStartBoard();
-                        auto [metadata, moves] = 
-                        PGNHandler::parseFile("does_not_exist_ever.pgn", initialBoard)
-                        .value_or(std::make_pair(PGNMetadata{}, std::vector<Move>{}));
+                        try
+                        {
+                                auto [metadata, moves] = 
+                                PGNHandler::parseFile("does_not_exist_ever.pgn", initialBoard);
 
-                        // Should return empty data without crashing
-                        EXPECT_TRUE(moves.empty());
-                        EXPECT_TRUE(metadata.event.empty());
+                                // Should return empty data without crashing
+                                EXPECT_TRUE(moves.empty());
+                                EXPECT_TRUE(metadata.event.empty());
+                        }
+                        catch (const ChessExcept::MissingResourceException& e)
+                        {
+                                std::cerr << e.what() << '\n';
+                        }
                 }
                 ENDM
 

@@ -28,7 +28,7 @@ private:
 
     [[nodiscard]] bool replayPGN(std::string_view pgnFilePath);
     [[nodiscard]] bool isValidInput(std::string_view userInput) const;
-    [[nodiscard]] bool processMove(Position<> startPos, Position<> endPos, char promotedTo = '\0');
+    void processMove(Position<> startPos, Position<> endPos, char promotedTo = '\0');
     [[nodiscard]] bool isValidActivePiece(const Piece* p) const;
     [[nodiscard]] bool isEnPassantMove(const Piece* p, Position<> startPos, Position<> endPos) const;
     [[nodiscard]] bool validateCastlingRules(Position<> startPos, Position<> endPos, int &rookStartX, int &rookEndX) const;

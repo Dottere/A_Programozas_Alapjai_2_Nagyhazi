@@ -3,6 +3,7 @@
 #include "pgnhandler.hpp"
 #include "constants.hpp"
 #include "logger.hpp"
+#include "exceptions.h"
 
 #include <iostream>
 #include <regex>
@@ -22,7 +23,7 @@ bool GameMaster::isValidActivePiece(const Piece *p) const
 }
 bool GameMaster::isEnPassantMove(const Piece *p, Position<> startPos, Position<> endPos) const
 {
-    if (std::tolower(p->getPieceType()) == 'p' && endPos == board.getEnPassantTarget())
+    if (p->isPromotionEligible(endPos) && endPos == board.getEnPassantTarget())
     {
         return std::abs(startPos.x - endPos.x) == 1;
     }
@@ -224,7 +225,7 @@ void GameMaster::gameLoop(PGNMetadata &metadata)
         char promotedTo = '\0';
 
         const Piece *p = board.getPiece(currentMoveStartPos);
-        if (p && std::tolower(p->getPieceType()) == 'p')
+        if (p && p->isPromotionEligible(currentMoveEndPos))
         {
             if (currentMoveEndPos.y == 0 || currentMoveEndPos.y == 7)
             {
@@ -247,16 +248,16 @@ void GameMaster::gameLoop(PGNMetadata &metadata)
                 }
             }
         }
-        bool moveSuccessful = processMove(currentMoveStartPos, currentMoveEndPos, promotedTo);
 
-        if (!moveSuccessful)
+        try {processMove(currentMoveStartPos, currentMoveEndPos, promotedTo); }
+        catch (const ChessExcept::InvalidMoveException& e)
         {
+            std::cerr << e.what() << '\n';
             continue;
         }
-        else
-        {
-            board.nextTurn();
-        }
+
+        board.nextTurn();
+        
         renderer.display(pointsWhite, pointsBlack);
 
         // 6. game over
@@ -276,27 +277,25 @@ void GameMaster::gameLoop(PGNMetadata &metadata)
     }
 }
 
-bool GameMaster::processMove(Position<> startPos, Position<> endPos, char promotedTo)
+void GameMaster::processMove(Position<> startPos, Position<> endPos, char promotedTo)
 {
     const Piece *p = board.getPiece(startPos);
 
     if (!isValidActivePiece(p))
-        return false;
+        throw ChessExcept::NonexistentPiecePointerException("Starting position is invalid! No piece stands there.");
 
     bool isEnPassant = isEnPassantMove(p, startPos, endPos);
 
     if (!isEnPassant && !p->isValidMove(startPos, endPos, board.getPiece(endPos)))
     {
-        std::cerr << "Helytelen lépés: Ez a bábu nem tud így lépni." << std::endl;
-        return false;
+        throw ChessExcept::InvalidMoveException("Helytelen lépés: Ez a bábu nem tud így lépni.");
     }
 
     auto path = p->getPath(startPos, endPos);
 
     if (!board.isPathClear(path))
     {
-        std::cerr << "Helytelen lépés: Útban van egy bábu." << std::endl;
-        return false;
+        throw ChessExcept::InvalidMoveException("Helytelen lépés: Útban van egy bábu.");
     }
 
     int rookStartX = -1, rookEndX = -1;
@@ -305,7 +304,7 @@ bool GameMaster::processMove(Position<> startPos, Position<> endPos, char promot
 
     if (isCastle && !validateCastlingRules(startPos, endPos, rookStartX, rookEndX))
     {
-        return false;
+        throw ChessExcept::InvalidCastlingException("Nem tudsz így sáncolni!");
     }
 
     Piece *capturedPiece = isEnPassant ? board.getPiece(Position<>(endPos.x, startPos.y)) : board.getPiece(endPos);
@@ -319,12 +318,10 @@ bool GameMaster::processMove(Position<> startPos, Position<> endPos, char promot
     if (board.isCheck(board.getTurn()))
     {
         rollbackInvalidMove(currentMove);
-        return false;
+        throw ChessExcept::InCheckException("Nem léphetsz sakkba!");
     }
 
     finalizeMove(currentMove, pointsGained);
-
-    return true;
 }
 
 bool GameMaster::isValidInput(std::string_view userInput) const
@@ -367,17 +364,26 @@ void GameMaster::run(std::string_view fenStr, std::string_view pgnFilePath)
 }
 
 bool GameMaster::replayPGN(std::string_view pgnFilePath)
-{
-    auto parsed = PGNHandler::parseFile(pgnFilePath, board).value_or(std::make_pair(PGNMetadata{}, std::vector<Move>{}));
-    auto metadata = parsed.first;
-    this->moveHistory = parsed.second;
+{   
+    
+    std::string startingFen;
+
+    try 
+    {
+        auto [metadata, moveHistory] = PGNHandler::parseFile(pgnFilePath, board);
+
+        startingFen = metadata.fen.empty() ? std::string(DEFAULT_FEN) : metadata.fen;
+        this->moveHistory = moveHistory;
+    }
+    catch (const ChessExcept::MissingResourceException& e) 
+    {
+        std::cerr << e.what() << '\n';
+    }
 
     if (this->moveHistory.empty()) 
     {
         return false;
     }
-
-    std::string startingFen = metadata.fen.empty() ? std::string(DEFAULT_FEN) : metadata.fen;
 
     int currentMoveIndex = 0;
 
@@ -426,5 +432,9 @@ void GameMaster::manualPlay(std::string_view fenStr)
 
     gameLoop(metadata);
 
-    PGNHandler::savePGN(metadata, moveHistory);
+    try { PGNHandler::savePGN(metadata, moveHistory); }
+    catch (const ChessExcept::MissingResourceException& e)
+    {
+        std::cerr << e.what();
+    }
 }

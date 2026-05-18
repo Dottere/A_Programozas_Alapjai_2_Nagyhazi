@@ -98,6 +98,8 @@ public:
         return checkGeometry(startPos, endPos, TargetPiece);
     }
 
+    [[nodiscard]] virtual bool isPromotionEligible(Position<>) const { return false; }
+
     [[nodiscard]] int getValue() const { return value; }
     [[nodiscard]] Color getColor() const { return PieceColor; }
     [[nodiscard]] bool getHasMoved() const { return hasMoved; }
@@ -225,6 +227,8 @@ public:
     {
         return {};
     }
+
+    [[nodiscard]] virtual bool isPromotionEligible(Position<> endPos) const override { return (endPos.y == 0 || endPos.y == 7); }
 
 protected:
     [[nodiscard]] bool checkGeometry(Position<> startPos, Position<> endPos, const Piece *TargetPiece) const override;
