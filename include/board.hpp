@@ -60,9 +60,13 @@ public:
 
     [[nodiscard]] Position<> getWhiteKingPos() const { return whiteKingPos; }
     [[nodiscard]] Position<> getBlackKingPos() const { return blackKingPos; }
-
     void setWhiteKingPos(Position<> pos) { whiteKingPos = pos; }
     void setBlackKingPos(Position<> pos) { blackKingPos = pos; }
+
+    [[nodiscard]] int getHalfMoveClock() const { return halfMoveClock; }
+    [[nodiscard]] int getFullMoveNumber() const { return fullMoveNumber; }
+    void setHalfMoveClock(int val) { halfMoveClock = val; }
+    void setFullMoveNumber(int val) { fullMoveNumber = val; }
 
     [[nodiscard]] const std::vector<Square> &getWhiteCaptured() const { return whiteCaptured; }
     [[nodiscard]] const std::vector<Square> &getBlackCaptured() const { return blackCaptured; }

@@ -7,6 +7,8 @@
 
 #include <vector>
 #include <string_view>
+#include <map>
+#include <string>
 
 class GameMaster
 {
@@ -18,6 +20,7 @@ private:
     int pointsBlack = 0;
 
     std::vector<Move> moveHistory;
+    std::map<std::string, int> positionHistory;
 
     void gameLoop(PGNMetadata &metadata);
     void manualPlay(std::string_view fenStr);

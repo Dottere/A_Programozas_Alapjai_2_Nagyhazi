@@ -131,6 +131,20 @@ void GameMaster::finalizeMove(Move &currentMove, int pointsGained)
     currentMove.flags.isCheck = board.isCheck(opponentColor);
     currentMove.flags.isCheckMate = board.isCheckMate(opponentColor);
 
+    if (std::tolower(currentMove.movedPiece) == 'p' || currentMove.flags.isCapture)
+    {
+        board.setHalfMoveClock(0);
+    }
+    else
+    {
+        board.setHalfMoveClock(board.getHalfMoveClock() + 1);
+    }
+
+    if (board.getTurn() == Color::BLACK)
+    {
+        board.setFullMoveNumber(board.getFullMoveNumber() + 1);
+    }
+
     moveHistory.push_back(currentMove);
 }
 
@@ -160,6 +174,41 @@ void GameMaster::gameLoop(PGNMetadata &metadata)
 
     while (true)
     {
+        if (board.getHalfMoveClock() >= 100)
+        {
+            std::cout << "Döntetlen! Életbe lépett az 50 lépéses szabály." << std::endl;
+            metadata.result = "1/2-1/2";
+            break;
+        }
+
+        if (board.isCheckMate(board.getTurn()))
+        {
+            std::string winner = board.isWhiteToMove() ? "Sötét" : "Fehér";
+            std::cout << "Sakkmatt! " << winner << " nyert!" << std::endl;
+            metadata.result = board.isWhiteToMove() ? "0-1" : "1-0";
+            break;
+        }
+        else if (board.isStaleMate(board.getTurn()))
+        {
+            std::cout << "Patt! A játék döntetlen." << std::endl;
+            metadata.result = "1/2-1/2";
+            break;
+        }
+
+        std::string currentFen = board.generateFEN();
+
+        size_t lastSpace = currentFen.find_last_of(' ');
+        size_t secondLastSpace = (lastSpace != std::string::npos) ? currentFen.find_last_of(' ', lastSpace - 1) : std::string::npos;
+        std::string stateKey = (secondLastSpace != std::string::npos) ? currentFen.substr(0, secondLastSpace) : currentFen;
+
+        positionHistory[stateKey]++;
+        if (positionHistory[stateKey] >= 3)
+        {
+            std::cout << "Döntetlen! Háromszoros lépésismétlés." << std::endl;
+            metadata.result = "1/2-1/2";
+            break;
+        }
+
         std::cin >> userInput;
         for (char &c : userInput)
             c = std::tolower(c);
@@ -259,21 +308,6 @@ void GameMaster::gameLoop(PGNMetadata &metadata)
         board.nextTurn();
         
         renderer.display(pointsWhite, pointsBlack);
-
-        // 6. game over
-        if (board.isCheckMate(board.getTurn()))
-        {
-            std::string winner = board.isWhiteToMove() ? "Sötét" : "Fehér";
-            std::cout << "Sakkmatt! " << winner << " nyert!" << std::endl;
-            metadata.result = board.isWhiteToMove() ? "0-1" : "1-0";
-            break;
-        }
-        else if (board.isStaleMate(board.getTurn()))
-        {
-            std::cout << "Patt! A játék döntetlen." << std::endl;
-            metadata.result = "1/2-1/2";
-            break;
-        }
     }
 }
 
