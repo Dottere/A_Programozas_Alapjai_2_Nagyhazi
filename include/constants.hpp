@@ -2,6 +2,7 @@
 
 #include "chesstypes.hpp"
 #include <string_view>
+#include <array>
 
 inline constexpr std::string_view DEFAULT_FEN =
     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";

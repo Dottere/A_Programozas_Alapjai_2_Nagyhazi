@@ -21,6 +21,7 @@ private:
 
 public:
     Renderer(const Board &board) : board(board) {}
+    
     void display(int whitePoints = 0, int blackPoints = 0) const;
     void display() const;
 };

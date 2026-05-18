@@ -10,6 +10,57 @@
 #include <string_view>
 #include <memory>
 #include <vector>
+#include <array>
+
+namespace PIECE_SYMBOLS
+{
+        enum class PIECE
+    {
+        PAWN,
+        KNIGHT,
+        BISHOP,
+        ROOK,
+        QUEEN,
+        KING
+    };
+
+    // uppercase for white
+    constexpr std::array<std::string_view, 6> ASCII_UPPER = {"P","N","B","R","Q","K"};    
+    // lowercase for black
+    constexpr std::array<std::string_view, 6> ASCII_LOWER = {"p","n","b","r","q","k"}; 
+    
+    namespace WHITE
+    {
+        inline constexpr std::array<std::string_view, 6> UNICODE = {
+        "\u2659","\u2658","\u2657","\u2656","\u2655","\u2654"};
+    }
+
+    namespace BLACK
+    {
+        inline constexpr std::array<std::string_view, 6> UNICODE = {
+        "\u265F","\u265E","\u265D","\u265C","\u265B","\u265A"
+        };
+    
+    }
+
+    enum class Mode { ASCII, UNICODE };
+
+    inline Mode mode = Mode::UNICODE;
+
+    inline std::string_view getSymbol(PIECE piece, Color color)
+    {
+        size_t index = static_cast<size_t>(piece);
+        if (mode == Mode::ASCII)
+        {
+            return (color == Color::WHITE) ? ASCII_UPPER[index] : ASCII_LOWER[index];
+        }
+        else
+        {
+            return (color == Color::WHITE) ? WHITE::UNICODE[index] : BLACK::UNICODE[index];
+        }
+    }
+}
+
 
 // forward declaration
 class Board;
@@ -25,11 +76,12 @@ class Piece
     bool hasMoved = false;
 
 protected:
-    std::string_view symbol;
+    PIECE_SYMBOLS::PIECE pieceEnum;
     char pieceType;
     int value;
 
-    Piece(Color color, std::string_view symbol, char type, int val) : PieceColor(color), symbol(std::move(symbol)), pieceType(type), value(val) {}
+    Piece(Color color, PIECE_SYMBOLS::PIECE pEnum, char type, int val) : 
+        PieceColor(color), pieceEnum(pEnum), pieceType(type), value(val) {}
 
     [[nodiscard]] virtual bool checkGeometry(Position<> startPos, Position<> endPos, const Piece *targetPiece) const = 0;
 
@@ -72,7 +124,7 @@ public:
         return path;
     }
 
-    [[nodiscard]] std::string_view getSymbol() const { return symbol; }
+    [[nodiscard]] std::string_view getSymbol() const { return PIECE_SYMBOLS::getSymbol(pieceEnum, PieceColor); }
 
     [[nodiscard]] virtual std::unique_ptr<Piece> clone() const = 0;
 };
@@ -80,7 +132,7 @@ public:
 class Rook : public Piece
 {
 public:
-    Rook(Color color) : Piece(color, (color == Color::WHITE) ? "\u2656" : "\u265C", 'R', static_cast<int>(PIECE_VALUES::ROOK)) {}
+    Rook(Color color) : Piece(color, PIECE_SYMBOLS::PIECE::ROOK, 'R', static_cast<int>(PIECE_VALUES::ROOK)) {}
 
     [[nodiscard]] std::unique_ptr<Piece> clone() const override
     {
@@ -96,7 +148,7 @@ protected:
 class Knight : public Piece
 {
 public:
-    Knight(Color color) : Piece(color, (color == Color::WHITE) ? "\u2658" : "\u265E", 'N', static_cast<int>(PIECE_VALUES::KNIGHT)) {}
+    Knight(Color color) : Piece(color, PIECE_SYMBOLS::PIECE::KNIGHT, 'N', static_cast<int>(PIECE_VALUES::KNIGHT)) {}
 
     [[nodiscard]] std::unique_ptr<Piece> clone() const override
     {
@@ -115,7 +167,7 @@ protected:
 class Bishop : public Piece
 {
 public:
-    Bishop(Color color) : Piece(color, (color == Color::WHITE) ? "\u2657" : "\u265D", 'B', static_cast<int>(PIECE_VALUES::BISHOP)) {}
+    Bishop(Color color) : Piece(color, PIECE_SYMBOLS::PIECE::BISHOP, 'B', static_cast<int>(PIECE_VALUES::BISHOP)) {}
 
     [[nodiscard]] std::unique_ptr<Piece> clone() const override
     {
@@ -129,7 +181,7 @@ protected:
 class Queen : public Piece
 {
 public:
-    Queen(Color color) : Piece(color, (color == Color::WHITE) ? "\u2655" : "\u265B", 'Q', static_cast<int>(PIECE_VALUES::QUEEN)) {}
+    Queen(Color color) : Piece(color, PIECE_SYMBOLS::PIECE::QUEEN, 'Q', static_cast<int>(PIECE_VALUES::QUEEN)) {}
 
     [[nodiscard]] std::unique_ptr<Piece> clone() const override
     {
@@ -143,7 +195,7 @@ protected:
 class King : public Piece
 {
 public:
-    King(Color color) : Piece(color, (color == Color::WHITE) ? "\u2654" : "\u265A", 'K', static_cast<int>(PIECE_VALUES::KING)) {}
+    King(Color color) : Piece(color, PIECE_SYMBOLS::PIECE::KING, 'K', static_cast<int>(PIECE_VALUES::KING)) {}
 
     [[nodiscard]] std::unique_ptr<Piece> clone() const override
     {
@@ -162,7 +214,7 @@ protected:
 class Pawn : public Piece
 {
 public:
-    Pawn(Color color) : Piece(color, (color == Color::WHITE) ? "\u2659" : "\u265F", 'P', static_cast<int>(PIECE_VALUES::PAWN)) {}
+    Pawn(Color color) : Piece(color, PIECE_SYMBOLS::PIECE::PAWN, 'P', static_cast<int>(PIECE_VALUES::PAWN)) {}
 
     [[nodiscard]] std::unique_ptr<Piece> clone() const override
     {

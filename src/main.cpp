@@ -4,6 +4,7 @@
 #include "pgnhandler.hpp"
 #include "constants.hpp"
 #include "utility.hpp"
+#include "piece.hpp"
 
 #include <vector>
 #include <string>
@@ -55,7 +56,7 @@ Options:
     -p, --pgn <file path>               Loads a game from the provided PGN allowing you to analyze is step by step)
 )"; //-t, --time-control <1|5|10|60>      Sets the time control of the game to <1|5|10|60> minutes)";
 
-    bool parseArguments(int argc, char *argv[], std::string &fenStr, std::string &pgnFilePath, std::string &timeControl)
+    bool parseArguments(int argc, char *argv[], std::string &fenStr, std::string &pgnFilePath, std::string &timeControl, bool& ascii_mode)
     {
         std::vector<std::string_view> args(argv, argv + argc);
 
@@ -121,6 +122,10 @@ Options:
                     return false;
                 }
             }
+            else if (args[i] == "--ascii")
+            {
+                ascii_mode = true;
+            }
             else
             {
                 std::cerr << "Ismeretlen paraméter: " << args[i] << std::endl;
@@ -139,9 +144,20 @@ int main(int argc, char *argv[])
     std::string pgnFilePath;
     std::string timeControl; // unused for now
 
-    if (!parseArguments(argc, argv, fenStr, pgnFilePath, timeControl))
+    bool ascii_mode = false;
+
+    if (!parseArguments(argc, argv, fenStr, pgnFilePath, timeControl, ascii_mode))
     {
         return EXIT_FAILURE;
+    }
+
+    if (ascii_mode)
+    {
+        PIECE_SYMBOLS::mode = PIECE_SYMBOLS::Mode::ASCII;
+    }
+    else
+    {
+        PIECE_SYMBOLS::mode = PIECE_SYMBOLS::Mode::UNICODE;
     }
 
     Board board;
